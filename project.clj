@@ -7,6 +7,10 @@
                  [clj-http "1.1.1"]
                  [org.clojure/data.json "0.2.6"]
                  [ring/ring-defaults "0.1.2"]
+                 [org.clojure/tools.logging "0.3.1"]
+                 [org.clojure/java.jdbc "0.3.6"]
+                 [postgresql "9.4-1201.jdbc41"]
+                 [com.mchange/c3p0 "0.9.5"]
                  [lib-noir "0.9.9"]]
   :plugins [[lein-ring "0.8.13"]]
   :ring {:handler yxt.handler/app}

@@ -5,3 +5,9 @@
 
 (def api-map {:api_key api-key
               :api_secret api-secret})
+
+(def db-host "localhost")
+(def db-port 5432)
+(def db-name "")
+(def db-user "")
+(def db-pass "")

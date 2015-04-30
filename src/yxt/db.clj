@@ -1,7 +1,9 @@
 (ns yxt.db
   (:require [clojure.java.jdbc :as jdbc]
+            [clojure.data.json :as json]
+
             [yxt.key :refer :all]
-            [clojure.data.json :as json])
+            [yxt.util :refer :all])
   (:import com.mchange.v2.c3p0.ComboPooledDataSource))
 
 
@@ -27,7 +29,7 @@
 (def pooled-db (delay (pool db-spec)))
 (defn db-connection [] @pooled-db)
 
-(defn tester
+(deflogin tester
   [req]
   (let [tmp (jdbc/query (db-connection)
                         ["select * from pg_user"])]

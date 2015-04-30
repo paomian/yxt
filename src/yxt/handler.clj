@@ -6,7 +6,9 @@
             [clojure.pprint :as pp]
             [noir.session :as ns]
             [clojure.data.json :as json]
+            [clojure.tools.logging :as log]
 
+            [yxt.util :as yu]
             [yxt.face :as yf]
             [yxt.db :as yd]))
 
@@ -14,21 +16,31 @@
   (GET "/" [] (str anti/*anti-forgery-token*))
   (POST "/yxt" [] yf/yxt)
   (GET "/me" [] yf/person-get)
-  (GET "/y" [] yd/tester)
+  (POST "/y" [] yd/tester)
   (route/not-found "Not Found"))
+
+(defmacro mylog
+  [s]
+  `(log/info (str "\n" (with-out-str (clojure.pprint/pprint ~s)))))
 
 (defn wrap-json
   [handler]
   (fn [req]
     (let [resp (handler req)
-          _ (println resp)
           body (:body resp)]
       (-> resp
           (assoc :body (json/write-str body))
           (assoc-in [:headers "Content-Type"] "application/json;charset=UTF-8")))))
+(defn wrap-req
+  [handler]
+  (fn [req]
+    (mylog req)
+    (let [tmp (handler req)]
+      (mylog tmp)
+      tmp)))
 
 (def app
   (-> app-routes
+      wrap-req
       (wrap-defaults api-defaults)
-      ns/wrap-noir-session
       wrap-json))

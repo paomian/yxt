@@ -2,37 +2,19 @@
   (:require [clj-http.client :as http]
             [noir.session :as ns]
             [clojure.data.json :as json]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+
+            [yxt.util :refer :all])
   (:use [yxt.key :only [api-key api-secret api-map]]))
 
-(defn to-json [^String s]
+(defn to-map [^String s]
   (json/read-str s :key-fn keyword))
 
 (defn own []
   (str (java.util.UUID/randomUUID)))
 
-(defn resolve-pp
-  ;;判断函数是否有参数限制
-  [pp]
-  (and (map? pp)
-       (or (contains? pp :pre)
-           (contains? pp :post))))
-
-(defmacro deflogin [name args & body]
-  `(defn ~name [req#]
-     {:pre [(ns/get :user)]}
-     (let [{:keys ~args} (:params req#)
-           ~'req req#]
-       ~@body)))
-
-(defmacro defhandler [name args & body]
-  `(defn ~name [req#]
-     (let [{:keys ~args} (:params req#)
-           ~'req req#]
-       ~@body)))
-
 (defn doreq [resp]
-  (to-json (:body resp)))
+  (to-map (:body resp)))
 
 
 (defn create-faceset [^String faceset-name ^String tag]
@@ -143,7 +125,6 @@
   (if file
     (let [{:keys [size tempfile content-type filename]} file
           new (own)
-          _ (println "<" new)
           new-name (str new (case content-type
                                 "image/jpeg" ".jpg"
                                 "image/png" ".png"

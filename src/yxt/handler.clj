@@ -31,16 +31,16 @@
       (-> resp
           (assoc :body (json/write-str body))
           (assoc-in [:headers "Content-Type"] "application/json;charset=UTF-8")))))
+
 (defn wrap-req
   [handler]
   (fn [req]
     (mylog req)
-    (let [tmp (handler req)]
-      (mylog tmp)
-      tmp)))
+    (handler req)))
 
 (def app
   (-> app-routes
       wrap-req
+      (yu/wrap-json-body :key-fn keyword)
       (wrap-defaults api-defaults)
       wrap-json))

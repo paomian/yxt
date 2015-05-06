@@ -4,7 +4,8 @@
             [clojure.data.json :as json]
             [clojure.java.io :as io]
 
-            [yxt.util :refer :all])
+            [yxt.util :refer :all]
+            [yxt.db :refer [insert! query update!]])
   (:use [yxt.key :only [api-key api-secret api-map]]))
 
 (defn to-map [^String s]
@@ -103,6 +104,7 @@
         face (first (:face body))
         face-id (:face_id face)
         gender (:value (:gender (:attribute face)))
+        img-path (.getAbsolutePath img)
         _ (println "<<" pic-name)]
     (if (some (fn [x] (= x gender)) (map :group_name (:group (get-group-list)))) ;;按照性别分 Group
       (let [face-handle (face-identify img gender)
@@ -114,10 +116,14 @@
         (if (and high (< 80 (:confidence high)))
           (login (:person_id high) {:msg high})
           (let [person-id (:persion_id (create-person pic-name face-id gender))]
+            (insert! :yxt_user {:pic_path img-path
+                                :person_id person-id})
             (train-identify gender)
             (login person-id "创建新用户"))))
       (let [group-name (:group_name (create-group gender))
             person-id (:persion_id (create-person pic-name face-id group-name))]
+        (insert! :yxt_user {:pic_path img-path
+                       :person_id person-id})
         (train-identify group-name)
         (login person-id "创建新分组新用户")))))
 
@@ -130,9 +136,8 @@
                                 "image/png" ".png"
                                 "image/bmp" ".bmp"
                                 ""))]
-     (clojure.pprint/pprint req)
      (io/copy tempfile (io/file "resources" "public" new-name))
      (if (.startsWith content-type "text")
        (slurp (str "resources/public/" new-name))
-       (json/write-str (up-pic-face (io/file (str "resources/public/" new-name)) new))))
-    (json/write-str {:error "file is required"})))
+       (up-pic-face (io/file (str "resources/public/" new-name)) new)))
+    {:error "file is required"}))

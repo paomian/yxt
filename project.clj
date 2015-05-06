@@ -12,6 +12,7 @@
                  [postgresql "9.4-1201.jdbc41"]
                  [com.mchange/c3p0 "0.9.5"]
                  [org.clojure/tools.logging "0.3.1"]
+                 [clj-time "0.9.0"]
                  [lib-noir "0.9.9"]]
   :plugins [[lein-ring "0.8.13"]]
   :ring {:handler yxt.handler/app}

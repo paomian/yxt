@@ -1,4 +1,5 @@
-(ns yxt.util)
+(ns yxt.util
+  (:require [clojure.data.json :as json]))
 
 (defn- json-request? [request]
   (if-let [type (:content-type request)]
@@ -13,16 +14,19 @@
           (catch Exception ex
             [false nil]))))))
 
+(def not-json
+  {:status 400
+   :handlers {"Content-Type" "application/json"}
+   :body {:error "Malformed JSON in request body or Headers is no json"}})
+
 (defn wrap-json-body
   [handler & json-opt]
   (fn [request]
     (if-let [[valid? json] (apply read-json request json-opt)]
       (if valid?
         (handler (assoc request :body json))
-        {:status  400
-         :headers {"Content-Type" "text/plain"}
-         :body    "Malformed JSON in request body."})
-      (handler request))))
+        not-json)
+      not-json)))
 
 (defmacro defhandler [name args & body]
   `(defn ~name [req#]

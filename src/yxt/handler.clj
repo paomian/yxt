@@ -12,13 +12,6 @@
             [yxt.face :as yf]
             [yxt.db :as yd]))
 
-(defroutes app-routes
-  (GET "/" [] (str anti/*anti-forgery-token*))
-  (POST "/yxt" [] yf/yxt)
-  (GET "/me" [] yf/person-get)
-  (POST "/y" [] yd/tester)
-  (route/not-found "Not Found"))
-
 (defmacro mylog
   [s]
   `(log/info (str "\n" (with-out-str (clojure.pprint/pprint ~s)))))
@@ -38,9 +31,22 @@
     (mylog req)
     (handler req)))
 
+(def json-routes
+  (-> (routes
+       (GET "/" [] (str anti/*anti-forgery-token*))
+       (POST "/yxt" [] yf/yxt)
+       (GET "/me" [] yf/person-get)
+       (POST "/y/:foo" [] yd/tester))
+      (wrap-routes wrap-req)
+      (wrap-routes yu/wrap-json-body :key-fn keyword)
+      (wrap-routes wrap-defaults api-defaults)
+      (wrap-routes wrap-json)))
+
+(def not-json-routes
+  (-> (routes
+       (route/resources "/"))))
+
 (def app
-  (-> app-routes
-      wrap-req
-      (yu/wrap-json-body :key-fn keyword)
-      (wrap-defaults api-defaults)
-      wrap-json))
+  (-> (routes json-routes
+              not-json-routes
+              (route/not-found "Not Found"))))

@@ -1,7 +1,7 @@
 (ns yxt.db
   (:require [clojure.java.jdbc :as jdbc]
             [clojure.data.json :as json]
-            [clj-time [coerce :as c] [local :as l]]
+            [clj-time [format :as f] [coerce :as cc]]
 
             [yxt.key :refer :all]
             [yxt.util :refer :all])
@@ -29,37 +29,46 @@
     {:datasource cpds}))
 
 (def pooled-db (delay (pool db-spec)))
+
 (defn db-connection [] @pooled-db)
 
-(deflogin tester
-  []
-  (let [tmp (jdbc/query (db-connection)
-                        ["select * from pg_user"])]
-    {:body tmp}))
+(def formatter (f/formatter "yyyy-MM-dd HH:mm:ss"))
+
+(defn parse [k date]
+  (f/unparse formatter (cc/from-sql-time (k date))))
+
+
 
 (defmacro insert!
   [table row-map]
   `(jdbc/insert! (db-connection) ~table ~row-map))
 
 (defmacro query
-  [sql]
-  `(jdbc/query (db-connection) ~sql))
+  [sql kfun]
+  `(map (fn [date#] (reduce (fn [d# [k# f#]]
+                             (assoc date# k# (f# k# d#)))
+                           date# ~kfun))
+        (jdbc/query (db-connection) ~sql)))
 
 (defmacro update!
   [table new-map where]
-  `(jdbc/update! (db-connection) ~table (merge ~new-map
-                                               {:update_at (c/to-sql-date l/local-now)}) where))
+  `(jdbc/update! (db-connection) ~table ~new-map where))
 
 (defmacro delete!
   [table where]
   `(jdbc/delete! (db-connection) ~table where))
 
+(defn value-to-json-pgobject [value]
+  (doto (PGobject.)
+    (.setType "json")
+    (.setValue (json/write-str value))))
+
 (extend-protocol jdbc/ISQLValue
   clojure.lang.IPersistentMap
-  (sql-value [value]
-    (doto (PGobject.)
-      (.setType "json")
-      (.setValue (json/write-str value)))))
+  (sql-value [value] (value-to-json-pgobject value))
+
+  clojure.lang.IPersistentVector
+  (sql-value [value] (value-to-json-pgobject value)))
 
 (extend-protocol jdbc/IResultSetReadColumn
   PGobject
@@ -70,15 +79,13 @@
         "json" (json/read-str value :key-fn keyword)
         :else value))))
 
-(defn value-to-json-pgobject
-  [value]
-  (doto (PGobject.)
-    (.setType "json")
-    (.setValue (json/write-json value))))
-
-(extend-protocol jdbc/ISQLValue
-  clojure.lang.IPersistentMap
-  (sql-value [value] (value-to-json-pgobject value))
-
-  clojure.lang.IPersistentVector
-  (sql-value [value] (value-to-json-pgobject value)))
+(deflogin tester
+  []
+  (let [#_(insert! :yxt_user {:pic_path "hello"
+                              :person_id "paomian1"
+                              :user_info {:hello [1 "test" true]}})
+        tmp (query
+             ["select * from yxt_user"]
+             {:created_at parse})]
+    (println tmp)
+    {:body tmp}))

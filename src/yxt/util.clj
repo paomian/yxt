@@ -26,13 +26,14 @@
       (if valid?
         (handler (assoc request :body json))
         not-json)
-      not-json)))
+      (handler request))))
 
 (defmacro defhandler [name args & body]
   `(defn ~name [req#]
-     (let [{:keys ~args} (:params req#)
-           ~'req req#]
-       ~@body)))
+     {:body
+      (let [{:keys ~args} (:params req#)
+            ~'req req#]
+        ~@body)}))
 
 (defmacro deflogin [name args & body]
   `(defn ~name [req#]

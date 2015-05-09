@@ -6,7 +6,8 @@
 
             [yxt.util :refer :all]
             [yxt.db :refer [insert! query update!]])
-  (:use [yxt.key :only [api-key api-secret api-map]]))
+  (:use [yxt.key :only [api-key api-secret api-map]])
+  (:import [javax.xml.bind DatatypeConverter]))
 
 (defn to-map [^String s]
   (json/read-str s :key-fn keyword))
@@ -15,7 +16,9 @@
   (str (java.util.UUID/randomUUID)))
 
 (defn doreq [resp]
-  (to-map (:body resp)))
+  (let [tmp (to-map (:body resp))]
+    (println tmp)
+    tmp))
 
 
 (defn create-faceset [^String faceset-name ^String tag]
@@ -96,7 +99,6 @@
 
 (defn login [id & msg]
   (println ">>>>>>>>>>>>>>>>>>>>>>" msg)
-  (ns/put! :user id)
   {:msg "You are login"})
 
 (defn up-pic-face [img pic-name]
@@ -105,7 +107,7 @@
         face-id (:face_id face)
         gender (:value (:gender (:attribute face)))
         img-path (.getAbsolutePath img)
-        _ (println "<<" pic-name)]
+        _ (println "<<" pic-name gender)]
     (if (some (fn [x] (= x gender)) (map :group_name (:group (get-group-list)))) ;;按照性别分 Group
       (let [face-handle (face-identify img gender)
             candidate (-> face-handle
@@ -115,13 +117,13 @@
             high (first candidate)]
         (if (and high (< 80 (:confidence high)))
           (login (:person_id high) {:msg high})
-          (let [person-id (:persion_id (create-person pic-name face-id gender))]
+          (let [person-id (:person_id (create-person pic-name face-id gender))]
             (insert! :yxt_user {:pic_path img-path
                                 :person_id person-id})
             (train-identify gender)
             (login person-id "创建新用户"))))
       (let [group-name (:group_name (create-group gender))
-            person-id (:persion_id (create-person pic-name face-id group-name))]
+            person-id (:person_id (create-person pic-name face-id group-name))]
         (insert! :yxt_user {:pic_path img-path
                        :person_id person-id})
         (train-identify group-name)
@@ -129,15 +131,23 @@
 
 (defhandler yxt [file]
   (if file
-    (let [{:keys [size tempfile content-type filename]} file
-          new (own)
-          new-name (str new (case content-type
-                                "image/jpeg" ".jpg"
-                                "image/png" ".png"
-                                "image/bmp" ".bmp"
-                                ""))]
-     (io/copy tempfile (io/file "resources" "public" new-name))
-     (if (.startsWith content-type "text")
-       (slurp (str "resources/public/" new-name))
-       (up-pic-face (io/file (str "resources/public/" new-name)) new)))
+    (cond
+      (map? file) (let [{:keys [size tempfile content-type filename]} file
+                        new (own)
+                        new-name (str new (case content-type
+                                            "image/jpeg" ".jpg"
+                                            "image/png" ".png"
+                                            "image/bmp" ".bmp"
+                                            ""))]
+                    (io/copy tempfile (io/file "resources" "public" new-name))
+                    (if (.startsWith content-type "text")
+                      (slurp (str "resources/public/" new-name))
+                      (up-pic-face (io/file (str "resources/public/" new-name)) new)))
+      (string? file) (let [bimg (DatatypeConverter/parseBase64Binary file)
+                           new (own)
+                           new-name (str "resources/public/" new ".png")]
+                       (with-open [o (io/output-stream new-name)]
+                         (.write o bimg))
+                       (up-pic-face (io/file new-name) new))
+      :default {:error "caonima"})
     {:error "file is required"}))

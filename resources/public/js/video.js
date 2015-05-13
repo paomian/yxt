@@ -7,7 +7,7 @@ var vid = document.getElementById('camera-stream');
 function snapshot() {
     if (stream) {
         ctx.drawImage(vid,0,0,500,375);
-        //document.querySelector('img').src = canvas.toDataURL('image/webp');
+        document.querySelector('img').src = canvas.toDataURL('image/webp');
         document.getElementById('fimg').value = canvas.toDataURL('image/png').substr(22);
     }
 }

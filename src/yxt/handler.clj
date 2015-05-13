@@ -2,11 +2,11 @@
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
-            [ring.middleware.anti-forgery :as anti]
             [clojure.pprint :as pp]
             [noir.session :as ns]
             [clojure.data.json :as json]
             [clojure.tools.logging :as log]
+            [ring.util.response :as resp]
 
             [yxt.util :as yu]
             [yxt.face :as yf]
@@ -33,7 +33,7 @@
 
 (def json-routes
   (-> (routes
-       (GET "/" [] (str anti/*anti-forgery-token*))
+       (GET "/" [] (resp/redirect "/video.html"))
        (POST "/yxt" [] yf/yxt)
        (GET "/me" [] yf/person-get)
        (POST "/y/:foo" [] yd/tester))

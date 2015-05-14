@@ -1,5 +1,15 @@
 (ns yxt.util
-  (:require [clojure.data.json :as json]))
+  (:require [clojure.data.json :as json]
+
+            [yxt.redis :as r]
+            []))
+;;TODO
+
+(defn rand-string [characters n]
+  (->> (fn [] (rand-nth characters))
+       repeatedly
+       (take n)
+       (apply str)))
 
 (defn- json-request? [request]
   (if-let [type (:content-type request)]
@@ -27,6 +37,14 @@
         (handler (assoc request :body json))
         not-json)
       (handler request))))
+
+(defn wrap-session-token
+  [handler & opts]
+  (let [:keys []]
+    (fn [request]
+      (if-let [sessionToken (get (-> request :headers) "sessionToken")]
+        (if-let [data (or (r/get-session-token sessionToken)
+                          ())])))))
 
 (defmacro defhandler [name args & body]
   `(defn ~name [req#]

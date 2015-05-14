@@ -13,7 +13,8 @@
                  [com.mchange/c3p0 "0.9.5"]
                  [org.clojure/tools.logging "0.3.1"]
                  [clj-time "0.9.0"]
-                 [lib-noir "0.9.9"]]
+                 [lib-noir "0.9.9"]
+                 [com.taoensso/carmine "2.10.0"]]
   :plugins [[lein-ring "0.8.13"]]
   :ring {:handler yxt.handler/app}
   :profiles

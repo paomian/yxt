@@ -116,7 +116,7 @@
                           :candidate)
             high (first candidate)]
         (if (and high (< 80 (:confidence high)))
-          (login (:person_id high) {:msg high})
+          (do (login (:person_id high) {:msg high}))
           (let [person-id (:person_id (create-person pic-name face-id gender))]
             (insert! :yxt_user {:pic_path img-path
                                 :person_id person-id})

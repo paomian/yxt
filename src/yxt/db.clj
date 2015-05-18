@@ -3,8 +3,7 @@
             [clojure.data.json :as json]
             [clj-time [format :as f] [coerce :as cc]]
 
-            [yxt.key :refer :all]
-            [yxt.util :refer :all])
+            [yxt.key :refer :all])
   (:import [com.mchange.v2.c3p0 ComboPooledDataSource]
            [org.postgresql.util PGobject]))
 
@@ -44,11 +43,17 @@
   `(jdbc/insert! (db-connection) ~table ~row-map))
 
 (defmacro query
-  [sql kfun]
-  `(map (fn [date#] (reduce (fn [d# [k# f#]]
-                             (assoc date# k# (f# k# d#)))
-                           date# ~kfun))
-        (jdbc/query (db-connection) ~sql)))
+  [sql & kfun]
+  ;; kfun 形如 {key parse-fn}
+  ;; {:created_at parse}
+  ;; 为一个 query 的结果指定的 key 做处理
+  (let [kmap (merge
+              {:created_at parse}
+              (zipmap (take-nth 2 kfun) (take-nth 2 (rest kfun))))]
+    `(map (fn [data#] (reduce (fn [d# [k# f#]]
+                                (assoc d# k# (f# k# d#)))
+                              data# ~kmap))
+          (jdbc/query (db-connection) ~sql))))
 
 (defmacro update!
   [table new-map where]
@@ -79,13 +84,7 @@
         "json" (json/read-str value :key-fn keyword)
         :else value))))
 
-(deflogin tester
-  []
-  (let [#_(insert! :yxt_user {:pic_path "hello"
-                              :person_id "paomian1"
-                              :user_info {:hello [1 "test" true]}})
-        tmp (query
-             ["select * from yxt_user"]
-             {:created_at parse})]
-    (println tmp)
-    {:body tmp}))
+(defn query-person-for-cache
+  [session-token]
+  (first
+   (query ["select id,person_id,email from yxt_user where session_token = ?" session-token])))

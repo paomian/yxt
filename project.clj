@@ -14,9 +14,12 @@
                  [org.clojure/tools.logging "0.3.1"]
                  [clj-time "0.9.0"]
                  [lib-noir "0.9.9"]
-                 [com.taoensso/carmine "2.10.0"]]
+                 [com.taoensso/carmine "2.10.0"]
+                 [org.clojure/tools.nrepl "0.2.10"]]
   :plugins [[lein-ring "0.8.13"]]
-  :ring {:handler yxt.handler/app}
+  :ring {:handler yxt.handler/app
+         :nrepl {:start? true
+                 :port 9998}}
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                         [ring-mock "0.1.5"]]}})

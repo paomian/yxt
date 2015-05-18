@@ -2,8 +2,7 @@
   (:require [clojure.data.json :as json]
 
             [yxt.redis :as r]
-            []))
-;;TODO
+            [yxt.db :as d]))
 
 (defn rand-string [characters n]
   (->> (fn [] (rand-nth characters))
@@ -40,24 +39,52 @@
 
 (defn wrap-session-token
   [handler & opts]
-  (let [:keys []]
+  (let [{:keys [hello]} opts]
     (fn [request]
-      (if-let [sessionToken (get (-> request :headers) "sessionToken")]
-        (if-let [data (or (r/get-session-token sessionToken)
-                          ())])))))
+      (if-let [session-token (get (-> request :headers) "Session-Token")]
+        (if-let [data (or (r/get-session-token session-token)
+                          (let [db-data (d/query-person-for-cache session-token)]))]
+          (handler (assoc request :user data))
+          {:status 401
+           :handlers {"Content-Type" "application/json"}
+           :body "SessionToken is wrong"})
+        (handler request)))))
 
 (defmacro defhandler [name args & body]
-  `(defn ~name [req#]
-     {:body
-      (let [{:keys ~args} (:params req#)
-            ~'req req#]
-        ~@body)}))
-
-(defmacro deflogin [name args & body]
-  `(defn ~name [req#]
-     (if true
+  (let [verify (:verify (first body))
+        [code verify] (if verify
+                        [(rest body) verify]
+                        [body (list :defaul nil)])]
+    `(defn ~name [req#]
        (let [{:keys ~args} (:params req#)
              ~'req req#]
-         ~@body)
-       {:status 401
-        :body {:error "You don't login."}})))
+         (if-let [error# (cond ~@verify)]
+           {:body {:error error#}})
+         (do
+           ~@code)))))
+
+(defmacro deflogin [name args & body]
+  (let [verify (:verify (first body))
+        [code verify] (if verify
+                        [(rest body) verify]
+                        [body (list :defaul nil)])]
+    `(defn ~name [req#]
+       (if (:user req#)
+           (let [{:keys ~args} (:params req#)
+                 ~'req req#]
+             (if-let [error# (cond ~@verify)]
+               {:body {:error error#}}
+               (do
+                 ~@code)))
+           {:status 401
+            :body {:error "You don't login."}}))))
+
+(defhandler tester
+  []
+  {:verify [(when-let [hello (-> req
+                                 :body
+                                 :hello)]
+              (not (string? hello))) "hello world"]}
+  (let [tmp (d/query
+             ["select * from yxt_user"])]
+    {:body tmp}))

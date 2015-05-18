@@ -36,7 +36,7 @@
        (GET "/" [] (resp/redirect "/video.html"))
        (POST "/yxt" [] yf/yxt)
        (GET "/me" [] yf/person-get)
-       (POST "/y/:foo" [] yd/tester))
+       (POST "/y/:foo" [] yu/tester))
       (wrap-routes wrap-req)
       (wrap-routes yu/wrap-json-body :key-fn keyword)
       (wrap-routes wrap-defaults api-defaults)

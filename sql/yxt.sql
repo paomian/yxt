@@ -6,6 +6,7 @@ CREATE TABLE yxt_user (
 	pic_path VARCHAR(100) UNIQUE,
 	person_id VARCHAR(100) UNIQUE,
         email VARCHAR(100) UNIQUE,
+        session_token VARCHAR(100) UNIQUE,
         user_info JSON,
 	PRIMARY KEY (id)
 );

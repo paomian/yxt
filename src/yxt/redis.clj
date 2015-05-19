@@ -12,8 +12,8 @@
    (wcar* (car/set (str c/session-token-prefix st) data)))
   ([prefix st data opt]
    (wcar* (car/set (str c/session-token-prefix st) data opt)))
-  ([prefix st data ex xx]
-   (wcar* (car/set (str c/session-token-prefix st) data ex xx))))
+  ([prefix st data eox tm]
+   (wcar* (car/set (str c/session-token-prefix st) data eox tm))))
 
 (defn del-cache
   [prefix st]
@@ -26,7 +26,7 @@
 (defn set-session-token
   "设置sessionToken缓存信息"
   [st data]
-  (set-cache c/session-token-prefix st data 86400))
+  (set-cache c/session-token-prefix st data "EX" 86400))
 
 (defn del-session-token
   "删除sessionToken缓存信息"

@@ -4,7 +4,6 @@
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
             [clojure.pprint :as pp]
             [noir.session :as ns]
-            [clojure.data.json :as json]
             [clojure.tools.logging :as log]
             [ring.util.response :as resp]
 
@@ -15,15 +14,6 @@
 (defmacro mylog
   [s]
   `(log/info (str "\n" (with-out-str (clojure.pprint/pprint ~s)))))
-
-(defn wrap-json
-  [handler]
-  (fn [req]
-    (let [resp (handler req)
-          body (:body resp)]
-      (-> resp
-          (assoc :body (json/write-str body))
-          (assoc-in [:headers "Content-Type"] "application/json;charset=UTF-8")))))
 
 (defn wrap-req
   [handler]
@@ -37,10 +27,10 @@
        (POST "/yxt" [] yf/yxt)
        (GET "/me" [] yf/person-get)
        (POST "/y/:foo" [] yu/tester))
-      (wrap-routes wrap-req)
+      (wrap-routes yu/wrap-session-token)
       (wrap-routes yu/wrap-json-body :key-fn keyword)
       (wrap-routes wrap-defaults api-defaults)
-      (wrap-routes wrap-json)))
+      (wrap-routes yu/wrap-json)))
 
 (def not-json-routes
   (-> (routes

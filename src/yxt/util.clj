@@ -4,8 +4,8 @@
             [yxt.redis :as r]
             [yxt.db :as d]))
 
-(defn rand-string [characters n]
-  (->> (fn [] (rand-nth characters))
+(defn rand-string [n]
+  (->> (fn [] (rand-nth "abcdefghijklmnopqrstuvwxyz1234567890"))
        repeatedly
        (take n)
        (apply str)))
@@ -28,6 +28,21 @@
    :handlers {"Content-Type" "application/json"}
    :body {:error "Malformed JSON in request body or Headers is no json"}})
 
+(defn get-user [session-token]
+  (or (r/get-session-token session-token)
+      (when-let [db-data (d/query-person-for-cache-by-ssssion-token session-token)]
+        (r/set-session-token session-token db-data)
+        db-data)))
+
+(defn wrap-json
+  [handler]
+  (fn [req]
+    (let [resp (handler req)
+          body (:body resp)]
+      (-> resp
+          (assoc :body (json/write-str body))
+          (assoc-in [:headers "Content-Type"] "application/json;charset=UTF-8")))))
+
 (defn wrap-json-body
   [handler & json-opt]
   (fn [request]
@@ -41,13 +56,12 @@
   [handler & opts]
   (let [{:keys [hello]} opts]
     (fn [request]
-      (if-let [session-token (get (-> request :headers) "Session-Token")]
-        (if-let [data (or (r/get-session-token session-token)
-                          (let [db-data (d/query-person-for-cache session-token)]))]
+      (if-let [session-token (get (-> request :headers) "x-yxt-session-token")]
+        (if-let [data (get-user session-token)]
           (handler (assoc request :user data))
           {:status 401
-           :handlers {"Content-Type" "application/json"}
-           :body "SessionToken is wrong"})
+           :headers {"Content-Type" "application/json;charset=UTF-8"}
+           :body "{\"error\":\"Malformed SessionToken\"}"})
         (handler request)))))
 
 (defmacro defhandler [name args & body]
@@ -70,16 +84,16 @@
                         [body (list :defaul nil)])]
     `(defn ~name [req#]
        (if (:user req#)
-           (let [{:keys ~args} (:params req#)
-                 ~'req req#]
-             (if-let [error# (cond ~@verify)]
-               {:body {:error error#}}
-               (do
-                 ~@code)))
-           {:status 401
-            :body {:error "You don't login."}}))))
+         (let [{:keys ~args} (:params req#)
+               ~'req req#]
+           (if-let [error# (cond ~@verify)]
+             {:body {:error error#}}
+             (do
+               ~@code)))
+         {:status 401
+          :body {:error "You don't login."}}))))
 
-(defhandler tester
+(deflogin tester
   []
   {:verify [(when-let [hello (-> req
                                  :body
@@ -87,4 +101,5 @@
               (not (string? hello))) "hello world"]}
   (let [tmp (d/query
              ["select * from yxt_user"])]
-    {:body tmp}))
+    {:body {:tmp tmp
+            :user (:user req)}}))

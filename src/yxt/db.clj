@@ -49,7 +49,7 @@
   ;; 为一个 query 的结果指定的 key 做处理
   (let [kmap (merge
               {:created_at parse}
-              (zipmap (take-nth 2 kfun) (take-nth 2 (rest kfun))))]
+              (apply hash-map kfun))]
     `(map (fn [data#] (reduce (fn [d# [k# f#]]
                                 (assoc d# k# (f# k# d#)))
                               data# ~kmap))
@@ -84,7 +84,12 @@
         "json" (json/read-str value :key-fn keyword)
         :else value))))
 
-(defn query-person-for-cache
+(defn query-person-for-cache-by-ssssion-token
   [session-token]
   (first
-   (query ["select id,person_id,email from yxt_user where session_token = ?" session-token])))
+   (query ["select id,person_id,email,session_token from yxt_user where session_token = ?" session-token])))
+
+(defn query-person-for-cache-by-person-id
+  [person-id]
+  (first
+   (query ["select id,person_id,email,session_token from yxt_user where person_id = ?" person-id])))

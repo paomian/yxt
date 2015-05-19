@@ -2,10 +2,12 @@
   (:require [clj-http.client :as http]
             [noir.session :as ns]
             [clojure.data.json :as json]
+            [clojure.tools.logging :as log]
             [clojure.java.io :as io]
 
             [yxt.util :refer :all]
-            [yxt.db :refer [insert! query update!]])
+            [yxt.db :refer [insert! query update!] :as d]
+            [yxt.redis :as r])
   (:use [yxt.key :only [api-key api-secret api-map]])
   (:import [javax.xml.bind DatatypeConverter]))
 
@@ -17,7 +19,7 @@
 
 (defn doreq [resp]
   (let [tmp (to-map (:body resp))]
-    (println tmp)
+    (log/info tmp)
     tmp))
 
 
@@ -31,15 +33,13 @@
 (defn get-group-list []
   (doreq (http/get "https://apicn.faceplusplus.com/v2/info/get_group_list"
                    {:query-params {:api_key api-key
-                                   :api_secret api-secret}
-                    :throw-entire-message? true})))
+                                   :api_secret api-secret}})))
 
 (defn train-identify
   [group-name]
   (doreq (http/get "https://apicn.faceplusplus.com/v2/train/identify"
                    {:query-params (merge api-map
-                                         {:group_name group-name})
-                    :throw-entire-message? true})))
+                                         {:group_name group-name})})))
 
 (defn face-identify
   ([img group-name]
@@ -50,8 +50,7 @@
                                   {:name "api_key" :content api-key}
                                   {:name "api_secret" :content api-secret}
                                   {:name "group_name" :content group-name}
-                                  {:name "mode" :content mode}]
-                      :throw-entire-message? true}))))
+                                  {:name "mode" :content mode}]}))))
 
 (defn create-group
   ([group-name]
@@ -70,15 +69,13 @@
                     {:form-params (merge api-map
                                          {:person_name persone-name
                                           :face_id face-id
-                                          :group_name gourp-name})
-                     :throw-entire-message? true})))
+                                          :group_name gourp-name})})))
 
 (defn get-person
   [person-id]
   (doreq (http/get "https://apicn.faceplusplus.com/v2/person/get_info"
                    {:query-params (merge api-map
-                                         {:person_id person-id})
-                    :throw-entire-message? true})))
+                                         {:person_id person-id})})))
 
 (defn detect
   [img]
@@ -86,8 +83,7 @@
                     {:multipart [{:name "img" :content img}
                                  {:name "api_key" :content api-key}
                                  {:name "api_secret" :content api-secret}
-                                 {:name  "attribute" :content "glass,pose,gender,age,race,smiling"}]
-                     :throw-entire-message? true})))
+                                 {:name  "attribute" :content "glass,pose,gender,age,race,smiling"}]})))
 
 (deflogin person-get
   []
@@ -97,9 +93,15 @@
     (json/write-str body)))
 
 
-(defn login [id & msg]
+(defn login [id st & msg]
   (println ">>>>>>>>>>>>>>>>>>>>>>" msg)
-  {:msg "You are login"})
+  {:person id
+   :sessonToken st})
+
+(defn create-user [path id st]
+  (insert! :yxt_user {:pic_path path
+                      :person_id id
+                      :session_token st}))
 
 (defn up-pic-face [img pic-name]
   (let [body (detect img)
@@ -116,18 +118,18 @@
                           :candidate)
             high (first candidate)]
         (if (and high (< 80 (:confidence high)))
-          (do (login (:person_id high) {:msg high}))
-          (let [person-id (:person_id (create-person pic-name face-id gender))]
-            (insert! :yxt_user {:pic_path img-path
-                                :person_id person-id})
+          (login (:person_id high) (:person_name high))
+          (let [session-token (rand-string 64)
+                person-id (:person_id (create-person session-token face-id gender))]
+            (create-user img-path person-id session-token)
             (train-identify gender)
-            (login person-id "创建新用户"))))
+            (login person-id session-token "创建新用户"))))
       (let [group-name (:group_name (create-group gender))
-            person-id (:person_id (create-person pic-name face-id group-name))]
-        (insert! :yxt_user {:pic_path img-path
-                       :person_id person-id})
+            session-token (rand-string 64)
+            person-id (:person_id (create-person session-token face-id group-name))]
+        (create-user img-path person-id session-token)
         (train-identify group-name)
-        (login person-id "创建新分组新用户")))))
+        (login person-id session-token "创建新分组新用户")))))
 
 (defhandler yxt [file]
   (if file
@@ -142,12 +144,12 @@
                     (io/copy tempfile (io/file "resources" "public" new-name))
                     (if (.startsWith content-type "text")
                       (slurp (str "resources/public/" new-name))
-                      (up-pic-face (io/file (str "resources/public/" new-name)) new)))
+                      {:body (up-pic-face (io/file (str "resources/public/" new-name)) new)}))
       (string? file) (let [bimg (DatatypeConverter/parseBase64Binary file)
                            new (own)
                            new-name (str "resources/public/" new ".png")]
                        (with-open [o (io/output-stream new-name)]
                          (.write o bimg))
-                       (up-pic-face (io/file new-name) new))
-      :default {:error "caonima"})
-    {:error "file is required"}))
+                       {:body (up-pic-face (io/file new-name) new)})
+      :default {:body {:error "caonima"}})
+    {:body {:error "file is required"}}))

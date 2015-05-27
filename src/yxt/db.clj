@@ -57,7 +57,7 @@
 
 (defmacro update!
   [table new-map where]
-  `(jdbc/update! (db-connection) ~table ~new-map where))
+  `(jdbc/update! (db-connection) ~table ~new-map ~where))
 
 (defmacro delete!
   [table where]
@@ -87,9 +87,9 @@
 (defn query-person-for-cache-by-ssssion-token
   [session-token]
   (first
-   (query ["select id,person_id,email,session_token from yxt_user where session_token = ?" session-token])))
+   (query ["select id,email,session_token from yxt_user where session_token = ?" session-token])))
 
-(defn query-person-for-cache-by-person-id
-  [person-id]
+(defn query-person-for-cache-by-id
+  [id]
   (first
-   (query ["select id,person_id,email,session_token from yxt_user where person_id = ?" person-id])))
+   (query ["select id,email,session_token from yxt_user where id = ?" id])))

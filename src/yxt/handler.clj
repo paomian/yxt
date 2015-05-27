@@ -21,6 +21,13 @@
     (mylog req)
     (handler req)))
 
+(def my {:params    {:urlencoded true
+                     :multipart  true
+                     :keywordize true}
+         :responses {:not-modified-responses true
+                     :absolute-redirects     true
+                     :content-types          true}})
+
 (def json-routes
   (-> (routes
        (GET "/" [] (resp/redirect "/video.html"))
@@ -29,8 +36,10 @@
        (POST "/y/:foo" [] yu/tester))
       (wrap-routes yu/wrap-session-token)
       (wrap-routes yu/wrap-json-body :key-fn keyword)
-      (wrap-routes wrap-defaults api-defaults)
+      (wrap-routes wrap-defaults my)
       (wrap-routes yu/wrap-json)))
+
+
 
 (def not-json-routes
   (-> (routes

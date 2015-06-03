@@ -1,8 +1,10 @@
 (ns yxt.util
   (:require [clojure.data.json :as json]
+            [clj-http.client :as http]
 
             [yxt.redis :as r]
-            [yxt.db :as d]))
+            [yxt.db :as d]
+            [yxt.key :as yk]))
 
 (defn rand-string [n]
   (->> (fn [] (rand-nth "abcdefghijklmnopqrstuvwxyz1234567890"))
@@ -105,3 +107,16 @@
              ["select * from yxt_user"])]
     {:body {:tmp tmp
             :user (:user req)}}))
+(defhandler oauth
+  [req]
+  (let [code (-> req :params :code)
+        res (http/post "https://github.com/login/oauth/access_token"
+                       {:headers {"Accept" "application/json"}
+                        :form-params {:code code
+                                      :client_id yk/github-id
+                                      :client_secret yk/github-secret}})
+        token (:access_token (json/read-str (:body res) :key-fn keyword))]
+    {:body (json/read-str (:body (http/get "https://api.github.com/user"
+                                           {:headers {"Authorization" (format "token %s" token)}})) :key-fn keyword)}))
+
+(def redirect-uri (format "<a href=\"https://github.com/login/oauth/authorize?client_id=%s&scope=user\">oauth</a>" yk/github-id))

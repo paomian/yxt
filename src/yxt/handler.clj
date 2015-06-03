@@ -44,6 +44,8 @@
        (POST "/yxt" [] yf/yxt)
        (GET "/me" [] yf/person-get)
        (POST "/y" [] yu/tester)
+       (GET "/oauth" [] yu/redirect-uri)
+       (GET "/callback" [] yu/oauth)
        (GET "/hello" [] (fn [req] (try
                                     (/ 1 0)
                                     (catch Exception e

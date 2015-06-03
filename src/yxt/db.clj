@@ -48,12 +48,15 @@
   ;; {:created_at parse}
   ;; 为一个 query 的结果指定的 key 做处理
   (let [kmap (merge
-              {:created_at parse}
+              {:created_at parse
+               :updated_at parse}
               (apply hash-map kfun))]
     `(map (fn [data#] (reduce (fn [d# [k# f#]]
                                 (assoc d# k# (f# k# d#)))
                               data# ~kmap))
-          (jdbc/query (db-connection) ~sql))))
+          (let [tmp# (jdbc/query (db-connection) ~sql)]
+            (clojure.pprint/pprint tmp#)
+            tmp#))))
 
 (defmacro update!
   [table new-map where]

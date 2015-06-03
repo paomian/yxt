@@ -97,16 +97,19 @@
   (println ">>>>>>>>>>>>>>>>>>>>>>" msg)
   {:sessonToken st})
 
-(defn create-user [path id st]
+(defn create-user [path id st & {:keys [age gender] :or {age -1 gender "UNKNOW"}}]
   (insert! :yxt_user {:pic_path path
                       :person_id id
-                      :session_token st}))
+                      :session_token st
+                      :age age
+                      :gender gender}))
 
 (defn up-pic-face [img pic-name]
   (let [body (detect img)
         face (first (:face body))
         face-id (:face_id face)
-        gender (:value (:gender (:attribute face)))
+        gender (-> face :attribute :gender :value)
+        age (Long/valueOf (-> face :attribute :age :value))
         img-path (.getAbsolutePath img)
         update-person (fn [person-id session-token]
                         (update! :yxt_user {:person_id person-id} ["session_token = ?" session-token]))]
@@ -120,7 +123,7 @@
         (if (and high (< 80 (:confidence high)))
           (login (:person_name high) "老用户登录")
           (let [session-token (rand-string 64)]
-            (create-user img-path "PENDING" session-token)
+            (create-user img-path "PENDING" session-token :age age :gender gender)
             (future
               (let [start (System/currentTimeMillis)
                     person-id (:person_id (create-person session-token face-id gender))]
@@ -129,12 +132,12 @@
                 (log/infof "Create person %s cast time %s ms" person-id (- (System/currentTimeMillis) start))))
             (login session-token "创建新用户"))))
       (let [session-token (rand-string 64)]
-        (create-user img-path "PENDING" session-token)
+        (create-user img-path "PENDING" session-token :age age :gender gender)
         (future (let [start (System/currentTimeMillis)
                       group-name (:group_name (create-group gender))
                       person-id (:person_id (create-person session-token face-id group-name))]
                   (train-identify group-name)
-                  (update-person person-id session-token)
+                  (update-person person-id session-token :age age :gender gender)
                   (log/infof "Create %s group and person %s cast time %s ms" group-name person-id (- (System/currentTimeMillis) start))))
         (login  session-token "创建新分组新用户")))))
 

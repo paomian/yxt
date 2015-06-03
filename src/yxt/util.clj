@@ -39,9 +39,11 @@
   (fn [req]
     (let [resp (handler req)
           body (:body resp)]
-      (-> resp
-          (assoc :body (json/write-str body))
-          (assoc-in [:headers "Content-Type"] "application/json;charset=UTF-8")))))
+      (if (map? body)
+          (-> resp
+           (assoc :body (json/write-str body))
+           (assoc-in [:headers "Content-Type"] "application/json;charset=UTF-8"))
+          resp))))
 
 (defn wrap-json-body
   [handler & json-opt]
@@ -93,7 +95,7 @@
          {:status 401
           :body {:error "You don't login."}}))))
 
-(deflogin tester
+(defhandler tester
   []
   {:verify [(when-let [hello (-> req
                                  :body

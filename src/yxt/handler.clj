@@ -1,7 +1,8 @@
 (ns yxt.handler
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
-            [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
+            [ring.middleware.defaults :refer [wrap-defaults site-defaults api-defaults]]
+            [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
             [clojure.pprint :as pp]
             [noir.session :as ns]
             [clojure.tools.logging :as log]
@@ -15,10 +16,18 @@
   [s]
   `(log/info (str "\n" (with-out-str (clojure.pprint/pprint ~s)))))
 
+
+(defn wrap-res
+  [handler]
+  (fn [req]
+    (let [res (handler req)]
+      (clojure.pprint/pprint res)
+      res)))
+
 (defn wrap-req
   [handler]
   (fn [req]
-    (mylog req)
+    (clojure.pprint/pprint req)
     (handler req)))
 
 (def my {:params    {:urlencoded true
@@ -30,16 +39,22 @@
 
 (def json-routes
   (-> (routes
+       (GET "/token" [] *anti-forgery-token*)
        (GET "/" [] (resp/redirect "/video.html"))
        (POST "/yxt" [] yf/yxt)
        (GET "/me" [] yf/person-get)
-       (POST "/y/:foo" [] yu/tester))
-      (wrap-routes yu/wrap-session-token)
+       (POST "/y" [] yu/tester)
+       (GET "/hello" [] (fn [req] (try
+                                    (/ 1 0)
+                                    (catch Exception e
+                                      (log/error e)
+                                      {:body "hello"})))))
+      #_(wrap-routes wrap-res)
+      (wrap-routes yu/wrap-json)
+      (wrap-routes wrap-defaults site-defaults)
       (wrap-routes yu/wrap-json-body :key-fn keyword)
-      (wrap-routes wrap-defaults my)
-      (wrap-routes yu/wrap-json)))
-
-
+      (wrap-routes yu/wrap-session-token)
+      #_(wrap-routes wrap-req)))
 
 (def not-json-routes
   (-> (routes

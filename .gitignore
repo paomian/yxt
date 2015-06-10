@@ -11,3 +11,4 @@ pom.xml.asc
 key.clj
 *.png
 *.jpg
+*.js

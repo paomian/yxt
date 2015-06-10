@@ -107,8 +107,12 @@
 
 (defn up-pic-face [img pic-name]
   (let [body (detect img)]
-    (cond (empty? (:face body)) {:error "There is no face in your photo"}
-          (not (nil? (next (:face body)))) {:error "There is not only one face in your phot"}
+    (cond (empty? (:face body)) (do
+                                  (.renameTo img (io/file (str "resources/public/no_face" pic-name)))
+                                  {:error "There is no face in your photo"})
+          (not (nil? (next (:face body)))) (do
+                                             (.renameTo img (io/file (str "resources/public/many_face" pic-name)))
+                                             {:error "There is not only one face in your phot"})
           (= 1 (count (:face body))) (let [face (first (:face body))
                                            face-id (:face_id face)
                                            gender (-> face :attribute :gender :value)
@@ -163,16 +167,18 @@
                                             "image/jpeg" ".jpg"
                                             "image/png" ".png"
                                             "image/bmp" ".bmp"
-                                            ""))]
+                                            ""))
+                        full-name (str "resources/public/" new-name)]
                     (io/copy tempfile (io/file "resources" "public" new-name))
                     (if (.startsWith content-type "text")
-                      (slurp (str "resources/public/" new-name))
-                      {:body (up-pic-face (io/file (str "resources/public/" new-name)) new)}))
+                      (slurp full-name)
+                      {:body (up-pic-face (io/file full-name) new-name)}))
       (string? file) (let [bimg (DatatypeConverter/parseBase64Binary file)
                            new (own)
-                           new-name (str "resources/public/" new ".png")]
-                       (with-open [o (io/output-stream new-name)]
+                           new-name (str new ".png")
+                           full-name (str "resources/public/" new-name)]
+                       (with-open [o (io/output-stream full-name)]
                          (.write o bimg))
-                       {:body (up-pic-face (io/file new-name) new)})
+                       {:body (up-pic-face (io/file full-name) new-name)})
       :default {:body {:error "caonima"}})
     {:body {:error "file is required"}}))

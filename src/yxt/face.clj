@@ -93,9 +93,10 @@
     (json/write-str body)))
 
 
-(defn login [st & msg]
+(defn login [st & {:keys [age gender] :as msg}]
   (println ">>>>>>>>>>>>>>>>>>>>>>" msg)
-  {:sessonToken st})
+  {:sessonToken st}
+  {:age age :gender gender})
 
 (defn create-user [path id st & {:keys [age gender] :or {age -1 gender "UNKNOW"}}]
   (insert! :yxt_user {:pic_path path
@@ -105,41 +106,53 @@
                       :gender gender}))
 
 (defn up-pic-face [img pic-name]
-  (let [body (detect img)
-        face (first (:face body))
-        face-id (:face_id face)
-        gender (-> face :attribute :gender :value)
-        age (Long/valueOf (-> face :attribute :age :value))
-        img-path (.getAbsolutePath img)
-        update-person (fn [person-id session-token]
-                        (update! :yxt_user {:person_id person-id} ["session_token = ?" session-token]))]
-    (if (some (fn [x] (= x gender)) (map :group_name (:group (get-group-list)))) ;;按照性别分 Group
-      (let [face-handle (face-identify img gender)
-            candidate (-> face-handle
-                          :face
-                          first
-                          :candidate)
-            high (first candidate)]
-        (if (and high (< 80 (:confidence high)))
-          (login (:person_name high) "老用户登录")
-          (let [session-token (rand-string 64)]
-            (create-user img-path "PENDING" session-token :age age :gender gender)
-            (future
-              (let [start (System/currentTimeMillis)
-                    person-id (:person_id (create-person session-token face-id gender))]
-                (train-identify gender)
-                (update-person person-id session-token)
-                (log/infof "Create person %s cast time %s ms" person-id (- (System/currentTimeMillis) start))))
-            (login session-token "创建新用户"))))
-      (let [session-token (rand-string 64)]
-        (create-user img-path "PENDING" session-token :age age :gender gender)
-        (future (let [start (System/currentTimeMillis)
-                      group-name (:group_name (create-group gender))
-                      person-id (:person_id (create-person session-token face-id group-name))]
-                  (train-identify group-name)
-                  (update-person person-id session-token :age age :gender gender)
-                  (log/infof "Create %s group and person %s cast time %s ms" group-name person-id (- (System/currentTimeMillis) start))))
-        (login  session-token "创建新分组新用户")))))
+  (let [body (detect img)]
+    (cond (empty? (:face body)) {:error "There is no face in your photo"}
+          (not (nil? (next (:face body)))) {:error "There is not only one face in your phot"}
+          (= 1 (count (:face body))) (let [face (first (:face body))
+                                           face-id (:face_id face)
+                                           gender (-> face :attribute :gender :value)
+                                           age (Long/valueOf (-> face :attribute :age :value))
+                                           img-path (.getAbsolutePath img)
+                                           update-person (fn [person-id session-token]
+                                                           (update! :yxt_user {:person_id person-id} ["session_token = ?" session-token]))]
+                                       (if (some (fn [x] (= x gender)) (map :group_name (:group (get-group-list)))) ;;按照性别分 Group
+                                         (let [face-handle (face-identify img gender)
+                                               candidate (-> face-handle
+                                                             :face
+                                                             first
+                                                             :candidate)
+                                               high (first candidate)]
+                                           (if (and high (< 80 (:confidence high)))
+                                             (login (:person_name high)
+                                                    :age age
+                                                    :gender gender
+                                                    :msg "老用户登录")
+                                             (let [session-token (rand-string 64)]
+                                               (create-user img-path "PENDING" session-token :age age :gender gender)
+                                               (future
+                                                 (let [start (System/currentTimeMillis)
+                                                       person-id (:person_id (create-person session-token face-id gender))]
+                                                   (train-identify gender)
+                                                   (update-person person-id session-token)
+                                                   (log/infof "Create person %s cast time %s ms" person-id (- (System/currentTimeMillis) start))))
+                                               (login session-token
+                                                      :age age
+                                                      :gender gender
+                                                      :msg "创建新用户"))))
+                                         (let [session-token (rand-string 64)]
+                                           (create-user img-path "PENDING" session-token :age age :gender gender)
+                                           (future (let [start (System/currentTimeMillis)
+                                                         group-name (:group_name (create-group gender))
+                                                         person-id (:person_id (create-person session-token face-id group-name))]
+                                                     (train-identify group-name)
+                                                     (update-person person-id session-token :age age :gender gender)
+                                                     (log/infof "Create %s group and person %s cast time %s ms" group-name person-id (- (System/currentTimeMillis) start))))
+                                           (login  session-token
+                                                   :age age
+                                                   :gender gender
+                                                   :msg "创建新分组新用户"))))
+          :default "if you get this page,you are beautiful.")))
 
 (defhandler yxt [file]
   (if file

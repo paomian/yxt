@@ -30,13 +30,6 @@
     (clojure.pprint/pprint req)
     (handler req)))
 
-(def my {:params    {:urlencoded true
-                     :multipart  true
-                     :keywordize true}
-         :responses {:not-modified-responses true
-                     :absolute-redirects     true
-                     :content-types          true}})
-
 (def json-routes
   (-> (routes
        (GET "/token" [] *anti-forgery-token*)
@@ -51,12 +44,10 @@
                                     (catch Exception e
                                       (log/error e)
                                       {:body "hello"})))))
-      #_(wrap-routes wrap-res)
       (wrap-routes yu/wrap-json)
       (wrap-routes wrap-defaults site-defaults)
       (wrap-routes yu/wrap-json-body :key-fn keyword)
-      (wrap-routes yu/wrap-session-token)
-      #_(wrap-routes wrap-req)))
+      (wrap-routes yu/wrap-session-token)))
 
 (def not-json-routes
   (-> (routes

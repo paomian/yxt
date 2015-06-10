@@ -28,7 +28,7 @@ function submit(anti) {
             request.setRequestHeader("X-Csrf-Token", anti);
         },
         data: {file:tmp},
-        success: function (data) {return data;},
+        success: function (data) {alert(data);},
         error: function (data) {
             console.log(data);
             alert('submit error');

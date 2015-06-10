@@ -3,7 +3,7 @@ var stream = null;
 var canvas = document.querySelector('canvas');
 var ctx = canvas.getContext('2d');
 //var vid = document.getElementById('camera-stream');
-var cameraStream = $("#camera-stream");
+var cameraStream = $('#camera-stream');
 var vid = cameraStream[0];
 
 
@@ -21,6 +21,7 @@ function snapshot() {
 function submit(anti) {
     var tmp = canvas.toDataURL('image/png').substr(22);
     console.log(anti);
+    $('#submit').attr('disabled','disabled');
     $.ajax({
         type: 'POST',
         url: '/yxt',
@@ -28,7 +29,10 @@ function submit(anti) {
             request.setRequestHeader("X-Csrf-Token", anti);
         },
         data: {file:tmp},
-        success: function (data) {alert(data);},
+        success: function (data) {
+            $('#submit').removeAttr('disabled');
+            alert(data);
+        },
         error: function (data) {
             console.log(data);
             alert('submit error');

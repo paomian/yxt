@@ -15,6 +15,7 @@ function snapshot() {
     reset.removeAttr('disabled');
     //vid.hide();
     cameraStream.hide();
+    $('img').show();
     if (stream) {
         ctx.drawImage(vid,0,0,500,375);
         //document.querySelector('img').src = canvas.toDataURL('image/webp');

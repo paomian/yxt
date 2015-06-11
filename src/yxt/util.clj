@@ -1,6 +1,7 @@
 (ns yxt.util
   (:require [clojure.data.json :as json]
             [clj-http.client :as http]
+            [clojure.tools.logging :as log]
 
             [yxt.redis :as r]
             [yxt.db :as d]

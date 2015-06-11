@@ -116,6 +116,7 @@
                                       :client_id yk/github-id
                                       :client_secret yk/github-secret}})
         token (:access_token (json/read-str (:body res) :key-fn keyword))]
+    (log/infof "token %s is be grant")
     {:body (json/read-str (:body (http/get "https://api.github.com/user"
                                            {:headers {"Authorization" (format "token %s" token)}})) :key-fn keyword)}))
 

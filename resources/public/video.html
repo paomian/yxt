@@ -4,17 +4,22 @@
     <meta charset="utf-8">
     <title>来刷脸吧！</title>
     <link rel="stylesheet" href="js/style.css">
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
   </head>
   <body>
     <div id="video-container">
       <center><p>点击画面进行截图</p></center>
-      <video id="camera-stream" width="500" autoplay></video>
+      <div id="pic">
+        <video id="camera-stream" width="500" autoplay></video>
         <img src="" />
         <input id="fimg" type="hidden" name="file">
-        <center>
-          <button id="reset" type="button" disabled="disabled">Reset</button>
-          <button id="submit" type="button" disabled="disabled">Submit</button>
-        </center>
+      </div>
+      <div>
+      <center>
+        <button id="reset" type="button" disabled="disabled" class="btn btn-warning">重新来一张</button>
+        <button id="submit" type="button" disabled="disabled" class="btn btn-success">刷起来</button>
+      </center>
+      </div>
       <canvas style="display:none;" width="500" height="375"></canvas>
     </div>
     <script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>

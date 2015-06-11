@@ -1,14 +1,15 @@
 (ns yxt.handler
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
-            [ring.middleware.defaults :refer [wrap-defaults site-defaults api-defaults]]
             [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
+            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [clojure.pprint :as pp]
             [noir.session :as ns]
             [clojure.tools.logging :as log]
             [ring.util.response :as resp]
 
             [yxt.util :as yu]
+            [yxt.wrap :refer :all]
             [yxt.face :as yf]
             [yxt.db :as yd]))
 
@@ -30,7 +31,7 @@
     (clojure.pprint/pprint req)
     (handler req)))
 
-(def json-routes
+(def app
   (-> (routes
        (GET "/token" [] *anti-forgery-token*)
        (GET "/" [] (resp/redirect "/video.html"))
@@ -39,21 +40,10 @@
        (POST "/y" [] yu/tester)
        (GET "/oauth" [] yu/redirect-uri)
        (GET "/callback" [] yu/oauth)
-       (GET "/hello" [] (fn [req] (try
-                                    (/ 1 0)
-                                    (catch Exception e
-                                      (log/error e)
-                                      {:body "hello"})))))
-      (wrap-routes yu/wrap-json)
-      (wrap-routes wrap-defaults site-defaults)
-      (wrap-routes yu/wrap-json-body :key-fn keyword)
-      (wrap-routes yu/wrap-session-token)))
-
-(def not-json-routes
-  (-> (routes
-       (route/resources "/"))))
-
-(def app
-  (-> (routes json-routes
-              not-json-routes
-              (route/not-found "Not Found"))))
+       (GET "/hello" [] "if you get here,you may be lost.")
+       (route/resources "/")
+       (route/not-found "Not Found"))
+      wrap-json
+      (wrap-json-body :key-fn keyword)
+      wrap-session-token
+      (wrap-defaults site-defaults)))

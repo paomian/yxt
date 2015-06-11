@@ -99,6 +99,9 @@
   {:sessonToken st}
   {:age age :gender gender})
 
+(defhandler userlist
+  [req])
+
 (defn create-user [path id st & {:keys [age gender] :or {age -1 gender "UNKNOW"}}]
   (insert! :yxt_user {:pic_path path
                       :person_id id
@@ -143,7 +146,7 @@
                                                  (let [start (System/currentTimeMillis)
                                                        person-id (:person_id (create-person session-token face-id gender))]
                                                    (train-identify gender)
-                                                   (update-person person-id session-token)
+                                                   (update-person person-id session-token)  ;; person-name 用来存储 sessionToken
                                                    (log/infof "Create person %s cast time %s ms" person-id (- (System/currentTimeMillis) start))))
                                                (yl/facelog pic-name session-token "新用户" )
                                                (login session-token

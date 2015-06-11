@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>HTML5 Demo: getUserMedia (Treehouse Blog)</title>
+    <title>来刷脸吧！</title>
     <link rel="stylesheet" href="js/style.css">
   </head>
   <body>
@@ -11,7 +11,10 @@
       <video id="camera-stream" width="500" autoplay></video>
         <img src="" />
         <input id="fimg" type="hidden" name="file">
-        <center><button id="submit" type="button">Submit</button></center>
+        <center>
+          <button id="reset" type="button" disabled="disabled">Reset</button>
+          <button id="submit" type="button" disabled="disabled">Submit</button>
+        </center>
       <canvas style="display:none;" width="500" height="375"></canvas>
     </div>
     <script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>

@@ -5,23 +5,30 @@ var ctx = canvas.getContext('2d');
 //var vid = document.getElementById('camera-stream');
 var cameraStream = $('#camera-stream');
 var vid = cameraStream[0];
+var reset = $('#reset');
+var submit = $('#submit');
 
 
 function snapshot() {
     console.log('snapshot');
+    submit.removeAttr('disabled');
+    reset.removeAttr('disabled');
+    //vid.hide();
+    cameraStream.hide();
     if (stream) {
         ctx.drawImage(vid,0,0,500,375);
-        document.querySelector('img').src = canvas.toDataURL('image/webp');
-        //$('#user').attr('src', canvas.toDataURL('image/webp'));
-        document.getElementById('fimg').value = canvas.toDataURL('image/png').substr(22);
-        //$('#user').attr('value', canvas.toDataURL('image/png').substr(22));
+        //document.querySelector('img').src = canvas.toDataURL('image/webp');
+        $('img').attr('src', canvas.toDataURL('image/webp'));
+        //document.getElementById('fimg').value = canvas.toDataURL('image/png').substr(22);
+        $('#img').attr('value', canvas.toDataURL('image/png').substr(22));
     }
 }
 
-function submit(anti) {
+function fsubmit(anti) {
     var tmp = canvas.toDataURL('image/png').substr(22);
     console.log(anti);
-    $('#submit').attr('disabled','disabled');
+    submit.attr('disabled','disabled');
+    reset.attr('disabled','disabled');
     $.ajax({
         type: 'POST',
         url: '/yxt',
@@ -46,7 +53,7 @@ function getToken() {
         type: 'GET',
         url: '/token',
         success: function (data) {
-            submit(data);
+            fsubmit(data);
         },
         error: function (data) {
             console.log(data);
@@ -56,10 +63,18 @@ function getToken() {
     });
 }
 
+function freset() {
+    submit.attr('disabled','disabled');
+    reset.attr('disabled','disabled');
+    $('img').hide();
+    cameraStream.show();
+}
+
 //vid.addEventListener('click', snapshot, false);
 cameraStream.click(snapshot);
 //console.log($('#submit'));
-$('#submit').click(getToken);
+submit.click(getToken);
+reset.click(freset);
 
 navigator.getUserMedia = navigator.getUserMedia ||
     navigator.webkitGetUserMedia ||

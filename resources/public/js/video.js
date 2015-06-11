@@ -38,7 +38,8 @@ function fsubmit(anti) {
         },
         data: {file:tmp},
         success: function (data) {
-            $('#submit').removeAttr('disabled');
+            submit.removeAttr('disabled');
+            reset.removeAttr('disabled');
             alert(data);
         },
         error: function (data) {

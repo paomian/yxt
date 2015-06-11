@@ -108,11 +108,13 @@
 
 (defn up-pic-face [img pic-name]
   (let [body (detect img)]
-    (cond (empty? (:face body)) (do
-                                  (.renameTo img (io/file (str "resources/public/no_face" pic-name)))
+    (cond (empty? (:face body)) (let [new-path (str "resources/public/no_face" pic-name)]
+                                  (log/infof "no face pic %s" new-path)
+                                  (.renameTo img (io/file new-path))
                                   {:error "There is no face in your photo"})
-          (not (nil? (next (:face body)))) (do
-                                             (.renameTo img (io/file (str "resources/public/many_face" pic-name)))
+          (not (nil? (next (:face body)))) (let [new-path (str "resources/public/no_face" pic-name)]
+                                             (log/infof "many face pic %s" new-path)
+                                             (.renameTo img (io/file new-path))
                                              {:error "There is not only one face in your phot"})
           (= 1 (count (:face body))) (let [face (first (:face body))
                                            face-id (:face_id face)

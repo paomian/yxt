@@ -7,7 +7,8 @@
 
             [yxt.util :refer :all]
             [yxt.db :refer [insert! query update!] :as d]
-            [yxt.redis :as r])
+            [yxt.redis :as r]
+            [yxt.log :as yl])
   (:use [yxt.key :only [api-key api-secret api-map]])
   (:import [javax.xml.bind DatatypeConverter]))
 
@@ -127,11 +128,13 @@
                                                              first
                                                              :candidate)
                                                high (first candidate)]
-                                           (if (and high (< 80 (:confidence high)))
-                                             (login (:person_name high)
-                                                    :age age
-                                                    :gender gender
-                                                    :msg "老用户登录")
+                                           (if (and high (< 70 (:confidence high)))
+                                             (do
+                                               (yl/facelog pic-name (:person_name high) "老用户")
+                                               (login (:person_name high)
+                                                     :age age
+                                                     :gender gender
+                                                     :msg "老用户登录"))
                                              (let [session-token (rand-string 64)]
                                                (create-user img-path "PENDING" session-token :age age :gender gender)
                                                (future
@@ -140,6 +143,7 @@
                                                    (train-identify gender)
                                                    (update-person person-id session-token)
                                                    (log/infof "Create person %s cast time %s ms" person-id (- (System/currentTimeMillis) start))))
+                                               (yl/facelog pic-name session-token "新用户" )
                                                (login session-token
                                                       :age age
                                                       :gender gender
@@ -152,6 +156,7 @@
                                                      (train-identify group-name)
                                                      (update-person person-id session-token :age age :gender gender)
                                                      (log/infof "Create %s group and person %s cast time %s ms" group-name person-id (- (System/currentTimeMillis) start))))
+                                           (yl/facelog pic-name session-token "新分组新用户")
                                            (login  session-token
                                                    :age age
                                                    :gender gender

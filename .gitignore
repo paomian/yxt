@@ -12,3 +12,4 @@ key.clj
 *.png
 *.jpg
 *.js
+*.log

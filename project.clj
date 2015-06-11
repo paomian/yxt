@@ -8,6 +8,10 @@
                  [org.clojure/data.json "0.2.6"]
                  [ring/ring-defaults "0.1.2"]
                  [org.clojure/tools.logging "0.3.1"]
+                 [log4j/log4j "1.2.17" :exclusions [javax.mail/mail
+                                                    javax.jms/jms
+                                                    com.sun.jdmk/jmxtools
+                                                    com.sun.jmx/jmxri]]
                  [org.clojure/java.jdbc "0.3.6"]
                  [org.postgresql/postgresql "9.4-1201-jdbc41"]
                  [com.mchange/c3p0 "0.9.5"]

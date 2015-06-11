@@ -40,7 +40,24 @@ function fsubmit(anti) {
         success: function (data) {
             submit.removeAttr('disabled');
             reset.removeAttr('disabled');
-            alert(data);
+            data = JSON.parse(data);
+            $('#tmp').remove();
+            if(data.error) {
+                $("#message").append('<div id="tmp"><p>好像出错了！ ' + data.error + '</p></div>');
+                $('#myModal').modal({
+                    keyboard: false
+                });
+            } else {
+                var html = '<div id="tmp">';
+                for(var key in data) {
+                    html = html+'<p>你的 ' + key + ' 是 : ' + data[key] + ' </p>';
+                }
+                html = html + '</div>';
+                $("#message").append(html);
+                $('#myModal').modal({
+                    keyboard: false
+                });
+            }
         },
         error: function (data) {
             console.log(data);

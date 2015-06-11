@@ -7,22 +7,42 @@
     <link href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
   </head>
   <body>
+
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Come On</h4>
+          </div>
+          <div class="modal-body">
+            <p id="message" style="display: inline;"></p>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="video-container">
       <center><p>点击画面进行截图</p></center>
       <div id="pic">
-        <video id="camera-stream" width="500" autoplay></video>
+        <video id="camera-stream" width="500" height="375" autoplay data-toggle="tooltip" data-placement="left" title="点击画面拍照"></video>
         <img src="" />
         <input id="fimg" type="hidden" name="file">
       </div>
       <div>
-      <center>
-        <button id="reset" type="button" disabled="disabled" class="btn btn-warning">重新刷</button>
-        <button id="submit" type="button" disabled="disabled" class="btn btn-success">刷起来</button>
-      </center>
+        <center>
+          <button id="reset" type="button" disabled="disabled" class="btn btn-warning">重新刷</button>
+          <button id="submit" type="button" disabled="disabled" class="btn btn-success">刷起来</button>
+        </center>
       </div>
       <canvas style="display:none;" width="500" height="375"></canvas>
     </div>
     <script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/video.js"></script>
   </body>
 </html>

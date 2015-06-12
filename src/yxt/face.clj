@@ -109,6 +109,10 @@
                       :age age
                       :gender gender}))
 
+(defn- placeholder
+  []
+  (str "PENDING-" (System/currentTimeMillis) (rand-string)))
+
 (defn up-pic-face [img pic-name]
   (let [body (detect img)]
     (cond (empty? (:face body)) (let [new-path (str "resources/public/no_face" pic-name)]
@@ -141,7 +145,7 @@
                                                      :gender gender
                                                      :msg "老用户登录"))
                                              (let [session-token (rand-string 64)]
-                                               (create-user img-path "PENDING" session-token :age age :gender gender)
+                                               (create-user img-path (placeholder) session-token :age age :gender gender)
                                                (future
                                                  (let [start (System/currentTimeMillis)
                                                        person-id (:person_id (create-person session-token face-id gender))]
@@ -154,7 +158,7 @@
                                                       :gender gender
                                                       :msg "创建新用户"))))
                                          (let [session-token (rand-string 64)]
-                                           (create-user img-path "PENDING" session-token :age age :gender gender)
+                                           (create-user img-path (placeholder) session-token :age age :gender gender)
                                            (future (let [start (System/currentTimeMillis)
                                                          group-name (:group_name (create-group gender))
                                                          person-id (:person_id (create-person session-token face-id group-name))]

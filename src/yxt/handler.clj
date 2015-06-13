@@ -65,7 +65,7 @@
        ;;(GET "/callback" [] yu/oauth)
        (GET "/hello" [] (fn [req] (swap! *yxt-session* assoc :session-token "gjo3k0scehqvqlq3vaytc8r30b73viycwdlyogwla749fnpew4f10yf6w4vf1iaf") {:body (:session req)}))
        (route/resources "/")
-       (route/not-found "Not Found"))
+       (route/not-found "你获得了 yxt 独占成就 404"))
       wrap-json
       (wrap-json-body :key-fn keyword)
       wrap-session-token

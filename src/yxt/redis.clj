@@ -9,7 +9,7 @@
 (defmacro wcar* [& body] `(car/wcar redis-server ~@body))
 
 (defonce session-store
-  (carmine-store redis-server :key-prefix "love:yxt"))
+  (carmine-store redis-server {:key-prefix "yxt:biepao"}))
 
 (defn set-cache
   ([prefix st data]

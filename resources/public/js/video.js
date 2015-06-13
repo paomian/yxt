@@ -120,3 +120,7 @@ if (navigator.getUserMedia) {
 } else {
     alert('Sorry, your browser does not support getUserMedia');
 }
+
+window.onload = function() {
+    console.log("你看我干嘛？");
+}

@@ -63,15 +63,20 @@
         (handler request)))))
 
 (declare ^:dynamic *yxt-session*)
+(declare ^:dynamic *yxt-cookies*)
 
-(defn wrap-yxt-session
+(defn wrap-yxt-sc
+  "对 *yxt-cookies* 和 *yxt-session* 进行操作，来修改 :session 和 :cookies字段"
   [handler]
   (fn [request]
-    (binding [*yxt-session* (atom (get request :session {}))]
+    (binding [*yxt-session* (atom (get request :session {}))
+              *yxt-cookies* (atom {})]
       (when-let [resp (handler request)]
-        (if (= (get request :session {}) @*yxt-session*)
-          resp
-          (assoc resp :session @*yxt-session*))))))
+        (-> resp
+            (assoc :cookies (merge (:cookies resp) @*yxt-cookies*))
+            (assoc :session @*yxt-session*))))))
+
+
 
 (defn wrap-test
   [handler]

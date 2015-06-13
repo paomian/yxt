@@ -64,6 +64,8 @@
        ;;(GET "/oauth" [] yu/redirect-uri)
        ;;(GET "/callback" [] yu/oauth)
        (GET "/hello" [] "你知道递归么？")
+       (GET "/hhh" [] (fn [req] (swap! *yxt-session* dissoc :session-token)
+                        "你可能不知道递归是什么？"))
        (route/resources "/")
        (route/not-found "你获得了 yxt 独占成就 404"))
       wrap-json

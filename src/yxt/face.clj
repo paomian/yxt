@@ -99,9 +99,6 @@
   {:sessonToken st}
   {:age age :gender gender})
 
-(defhandler userlist
-  [req])
-
 (defn create-user [path id st & {:keys [age gender] :or {age -1 gender "UNKNOW"}}]
   (insert! :yxt_user {:pic_path path
                       :person_id id

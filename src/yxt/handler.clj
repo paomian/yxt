@@ -2,7 +2,7 @@
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
-            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
+            [ring.middleware.defaults :refer [wrap-defaults]]
             [clojure.pprint :as pp]
             [noir.session :as ns]
             [clojure.tools.logging :as log]
@@ -11,7 +11,8 @@
             [yxt.util :as yu]
             [yxt.wrap :refer :all]
             [yxt.face :as yf]
-            [yxt.db :as yd]))
+            [yxt.db :as yd]
+            [yxt.redis :as yr]))
 
 (defmacro mylog
   [s]
@@ -28,22 +29,45 @@
 (defn wrap-req
   [handler]
   (fn [req]
-    (clojure.pprint/pprint req)
+    (print ">>>>>>>>>>>>>>" (:session req))
     (handler req)))
+
+(def site-defaults
+  "A default configuration for a browser-accessible website, based on current
+  best practice."
+  {:params    {:urlencoded true
+               :multipart  true
+               :nested     true
+               :keywordize true}
+   :cookies   true
+   :session   {:flash true
+               :store yr/session-store
+               :cookie-name "yxt-session"
+               :cookie-attrs {:http-only true}}
+   :security  {:anti-forgery   true
+               :xss-protection {:enable? true, :mode :block}
+               :frame-options  :sameorigin
+               :content-type-options :nosniff}
+   :static    {:resources "public"}
+   :responses {:not-modified-responses true
+               :absolute-redirects     true
+               :content-types          true}})
 
 (def app
   (-> (routes
        (GET "/token" [] *anti-forgery-token*)
        (GET "/" [] (resp/redirect "/video.html"))
        (POST "/yxt" [] yf/yxt)
-       (GET "/me" [] yf/person-get)
-       (POST "/y" [] yu/tester)
-       (GET "/oauth" [] yu/redirect-uri)
-       (GET "/callback" [] yu/oauth)
-       (GET "/hello" [] "if you get here,you may be lost.")
+       (POST "/hearken" [] )
+       ;;(GET "/me" [] yf/person-get)
+       ;;(POST "/y" [] yu/tester)
+       ;;(GET "/oauth" [] yu/redirect-uri)
+       ;;(GET "/callback" [] yu/oauth)
+       (GET "/hello" [] (fn [req] (swap! *yxt-session* assoc :session-token "gjo3k0scehqvqlq3vaytc8r30b73viycwdlyogwla749fnpew4f10yf6w4vf1iaf") {:body (:session req)}))
        (route/resources "/")
        (route/not-found "Not Found"))
       wrap-json
       (wrap-json-body :key-fn keyword)
       wrap-session-token
+      wrap-yxt-session
       (wrap-defaults site-defaults)))

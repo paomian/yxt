@@ -52,7 +52,9 @@
                :updated_at parse}
               (apply hash-map kfun))]
     `(map (fn [data#] (reduce (fn [d# [k# f#]]
-                                (assoc d# k# (f# k# d#)))
+                                (if (k# d#)
+                                  (assoc d# k# (f# k# d#))
+                                  d#))
                               data# ~kmap))
           (let [tmp# (jdbc/query (db-connection) ~sql)]
             (clojure.pprint/pprint tmp#)
@@ -87,7 +89,7 @@
         "json" (json/read-str value :key-fn keyword)
         :else value))))
 
-(defn query-person-for-cache-by-ssssion-token
+(defn query-person-for-cache-by-session-token
   [session-token]
   (first
    (query ["select id,email,session_token from yxt_user where session_token = ?" session-token])))

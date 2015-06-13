@@ -24,7 +24,7 @@
 
 (defn get-user [session-token]
   (or (r/get-session-token session-token)
-      (when-let [db-data (d/query-person-for-cache-by-ssssion-token session-token)]
+      (when-let [db-data (d/query-person-for-cache-by-session-token session-token)]
         (r/set-session-token session-token db-data)
         db-data)))
 
@@ -52,13 +52,26 @@
   [handler & opts]
   (let [{:keys [hello]} opts]
     (fn [request]
-      (if-let [session-token (get (-> request :headers) "x-yxt-session-token")]
+      (if-let [session-token (or
+                              (get (:session request) :session-token)
+                              (get (-> request :headers) "x-yxt-session-token"))]
         (if-let [data (get-user session-token)]
           (handler (assoc request :user data))
           {:status 401
            :headers {"Content-Type" "application/json;charset=UTF-8"}
            :body "{\"error\":\"Malformed SessionToken\"}"})
         (handler request)))))
+
+(declare ^:dynamic *yxt-session*)
+
+(defn wrap-yxt-session
+  [handler]
+  (fn [request]
+    (binding [*yxt-session* (atom (get request :session {}))]
+      (when-let [resp (handler request)]
+        (if (= (get request :session {}) @*yxt-session*)
+          resp
+          (assoc resp :session @*yxt-session*))))))
 
 (defn wrap-test
   [handler]

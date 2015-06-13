@@ -1,11 +1,15 @@
 (ns yxt.redis
   (:require [taoensso.carmine :as car :refer (wcar)]
+            [taoensso.carmine.ring :refer [carmine-store]]
 
             [yxt.config :as c]))
 
 (def redis-server {:pool {} :spec {:host "127.0.0.1" :port 6379}})
 
 (defmacro wcar* [& body] `(car/wcar redis-server ~@body))
+
+(defonce session-store
+  (carmine-store redis-server :key-prefix "love:yxt"))
 
 (defn set-cache
   ([prefix st data]

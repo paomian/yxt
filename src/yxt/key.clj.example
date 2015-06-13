@@ -11,3 +11,11 @@
 (def db-name "")
 (def db-user "")
 (def db-pass "")
+
+(def github-id "")
+(def github-secret "")
+
+(def redis-server {:pool {} :spec {:host "127.0.0.1"
+                                   :port 6379
+                                   :db 0}})
+

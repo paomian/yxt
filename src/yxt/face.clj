@@ -108,7 +108,7 @@
 
 (defn- placeholder
   []
-  (str "PENDING-" (System/currentTimeMillis) (rand-string)))
+  (str "PENDING-" (System/currentTimeMillis) (rand-string 4)))
 
 (defn up-pic-face [img pic-name]
   (let [body (detect img)]

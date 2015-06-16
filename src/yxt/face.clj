@@ -124,7 +124,6 @@
                                            face-id (:face_id face)
                                            gender (-> face :attribute :gender :value)
                                            age (Long/valueOf (-> face :attribute :age :value))
-                                           img-path (.getAbsolutePath img)
                                            update-person (fn [person-id session-token]
                                                            (update! :yxt_user {:person_id person-id} ["session_token = ?" session-token]))]
                                        (if (some (fn [x] (= x gender)) (map :group_name (:group (get-group-list)))) ;;按照性别分 Group
@@ -142,7 +141,7 @@
                                                      :gender gender
                                                      :msg "老用户登录"))
                                              (let [session-token (rand-string 64)]
-                                               (create-user img-path (placeholder) session-token :age age :gender gender)
+                                               (create-user pic-name (placeholder) session-token :age age :gender gender)
                                                (future
                                                  (let [start (System/currentTimeMillis)
                                                        person-id (:person_id (create-person session-token face-id gender))]
@@ -155,7 +154,7 @@
                                                       :gender gender
                                                       :msg "创建新用户"))))
                                          (let [session-token (rand-string 64)]
-                                           (create-user img-path (placeholder) session-token :age age :gender gender)
+                                           (create-user pic-name (placeholder) session-token :age age :gender gender)
                                            (future (let [start (System/currentTimeMillis)
                                                          group-name (:group_name (create-group gender))
                                                          person-id (:person_id (create-person session-token face-id group-name))]

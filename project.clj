@@ -20,6 +20,7 @@
                  [lib-noir "0.9.9"]
                  [com.taoensso/carmine "2.10.0"]
                  [org.clojure/tools.nrepl "0.2.10"]
+                 [com.draines/postal "1.11.3"]
                  [crypto-password "0.1.3"]]
   :plugins [[lein-ring "0.8.13"]]
   :ring {:handler yxt.handler/app

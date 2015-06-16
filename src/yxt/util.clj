@@ -2,6 +2,7 @@
   (:require [clojure.data.json :as json]
             [clj-http.client :as http]
             [clojure.tools.logging :as log]
+            [postal.core :as pc]
 
             [yxt.db :as d]
             [yxt.key :as yk]))
@@ -65,3 +66,13 @@
                                            {:headers {"Authorization" (format "token %s" token)}})) :key-fn keyword)}))
 
 (def redirect-uri (format "<a href=\"https://github.com/login/oauth/authorize?client_id=%s&scope=user\">oauth</a>" yk/github-id))
+
+(defn send-email
+  [email body & {:keys [subject]}]
+  (pc/send-message {:host "smtp.mailgun.org"
+                    :user "postmaster@sandbox85843.mailgun.org"
+                    :pass "597bd7p014g9"}
+                   {:from "xpaomian@gmail.com"
+                    :to email
+                    :subject (or "Hi!" subject)
+                    :body body}))

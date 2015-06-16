@@ -182,15 +182,15 @@
                                             "image/png" ".png"
                                             "image/bmp" ".bmp"
                                             ""))
-                        full-name (str "resources/public/" new-name)]
-                    (io/copy tempfile (io/file "resources" "public" new-name))
+                        full-name (str "resources/public/pic/" new-name)]
+                    (io/copy tempfile (io/file "resources" "public" "pic" new-name))
                     (if (.startsWith content-type "text")
                       (slurp full-name)
                       {:body (up-pic-face (io/file full-name) new-name)}))
       (string? file) (let [bimg (DatatypeConverter/parseBase64Binary file)
                            new (own)
                            new-name (str new ".png")
-                           full-name (str "resources/public/" new-name)]
+                           full-name (str "resources/public/pic/" new-name)]
                        (with-open [o (io/output-stream full-name)]
                          (.write o bimg))
                        {:body (up-pic-face (io/file full-name) new-name)})

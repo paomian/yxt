@@ -2,7 +2,9 @@
   (:require [clojure.data.json :as json]
 
             [yxt.redis :as r]
-            [yxt.db :as d]))
+            [yxt.util :refer [*yxt-session* *yxt-cookies*]]
+            [yxt.db :as d]
+            [yxt.util :refer :all]))
 
 (defn- json-request? [request]
   (if-let [type (:content-type request)]
@@ -21,12 +23,6 @@
   {:status 400
    :handlers {"Content-Type" "application/json"}
    :body {:error "Malformed JSON in request body or Headers is no json"}})
-
-(defn get-user [session-token]
-  (or (r/get-session-token session-token)
-      (when-let [db-data (d/query-person-for-cache-by-session-token session-token)]
-        (r/set-session-token session-token db-data)
-        db-data)))
 
 (defn wrap-json
   [handler]
@@ -52,6 +48,7 @@
   [handler & opts]
   (let [{:keys [hello]} opts]
     (fn [request]
+      (clojure.pprint/pprint (:session request))
       (if-let [session-token (or
                               (get (-> request :headers) "x-yxt-session-token")
                               (get (:session request) :session-token))]
@@ -63,9 +60,6 @@
              :headers {"Content-Type" "application/json;charset=UTF-8"}
              :body "{\"error\":\"Malformed SessionToken\"}"}))
         (handler request)))))
-
-(declare ^:dynamic *yxt-session*)
-(declare ^:dynamic *yxt-cookies*)
 
 (defn wrap-yxt-sc
   "对 *yxt-cookies* 和 *yxt-session* 进行操作，来修改 :session 和 :cookies字段"

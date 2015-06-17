@@ -8,7 +8,8 @@
 (defmacro wcar* [& body] `(car/wcar k/redis-server ~@body))
 
 (defonce session-store
-  (carmine-store k/redis-server {:key-prefix "yxt:biepao"}))
+  (carmine-store k/redis-server {:key-prefix "yxt:biepao"
+                                 :expiration-secs 300}))
 
 (defn set-cache
   ([prefix st data]

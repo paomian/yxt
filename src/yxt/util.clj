@@ -5,8 +5,18 @@
             [postal.core :as pc]
 
             [yxt.db :as d]
-            [yxt.wrap :refer [*yxt-session* *yxt-cookies*]]
-            [yxt.key :as yk]))
+            [yxt.redis :as r]
+            [yxt.key :as yk]
+            [yxt.redis :as rx]))
+
+(declare ^:dynamic *yxt-session*)
+(declare ^:dynamic *yxt-cookies*)
+
+(defn get-user [session-token]
+  (or (r/get-session-token session-token)
+      (when-let [db-data (d/query-person-for-cache-by-session-token session-token)]
+        (r/set-session-token session-token db-data)
+        db-data)))
 
 (defn assoc-session!
   [key value]

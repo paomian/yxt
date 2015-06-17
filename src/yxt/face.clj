@@ -8,7 +8,8 @@
             [yxt.util :refer :all]
             [yxt.db :refer [insert! query update!] :as d]
             [yxt.redis :as r]
-            [yxt.log :as yl])
+            [yxt.log :as yl]
+            [yxt.hearken :as yh])
   (:use [yxt.key :only [api-key api-secret api-map]])
   (:import [javax.xml.bind DatatypeConverter]))
 
@@ -97,7 +98,10 @@
   (println ">>>>>>>>>>>>>>>>>>>>>>" msg)
   (assoc-session! :session-token st)
   {:sessonToken st}
-  {:age age :gender gender})
+  (merge
+   (when (:hello msg)
+     {:hello (:hello msg)})
+   {:age age :gender gender}))
 
 (defn create-user [path id st & {:keys [age gender] :or {age -1 gender "UNKNOW"}}]
   (insert! :yxt_user {:pic_name path
@@ -138,12 +142,15 @@
                                                              :candidate)
                                                high (first candidate)]
                                            (if (and high (< 70 (:confidence high)))
-                                             (do
-                                               (yl/facelog pic-name (:person_name high) "老用户")
-                                               (login (:person_name high)
-                                                     :age age
-                                                     :gender gender
-                                                     :msg "老用户登录"))
+                                             (let [person-name (:person_name high)
+                                                   user (get-user person-name)
+                                                   hearken (first (yh/get-hearken (:id user)))]
+                                               (yl/facelog pic-name person-name  "老用户")
+                                               (login person-name
+                                                      :age age
+                                                      :gender gender
+                                                      :msg "老用户登录"
+                                                      :hello hearken))
                                              (let [session-token (rand-string 64)]
                                                (create-user pic-name (placeholder) session-token :age age :gender gender)
                                                (future

@@ -22,7 +22,7 @@ function getToken() {
 }
 
 function fsubmit(token) {
-    var thello = $('#hello').text();
+    var thello = $('#hello').val();
     $.ajax({
         type: 'POST',
         url: '/hello',
@@ -32,6 +32,7 @@ function fsubmit(token) {
         data: {hello:thello},
         success: function (data) {
             alert(data);
+            location.href = '/';
         },
         error: function (data) {
             console.log(data.responseText);

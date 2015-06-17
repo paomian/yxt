@@ -1,6 +1,6 @@
 (ns yxt.hearken
   (:require [yxt.util :refer :all]
-            [yxt.db :refer [insert!] :as d]))
+            [yxt.db :refer [insert! query] :as d]))
 
 (deflogin hearken
   [hello req]
@@ -10,3 +10,7 @@
     (let [tmp (insert! :yxt_hello {:hello hello
                                    :user_id (:id user)})]
       {:body hello})))
+
+(defn get-hearken
+  [user-id]
+  (query ["select id,hello,created_at from yxt_hello where user_id=?" user-id]))

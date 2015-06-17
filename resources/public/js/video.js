@@ -50,9 +50,17 @@ function fsubmit(anti) {
             } else {
                 var html = '<div id="tmp">';
                 for(var key in data) {
-                    html = html+'<p>你的 ' + key + ' 是 : ' + data[key] + ' </p>';
+                    if(key == 'hello') {
+                        html = html+'<p>你是否在 ' + data[key].created_at  + ' 说过：' + data[key].hello + ' </p>';
+                    } else {
+                        html = html+'<p>你的 ' + key + ' 是 : ' + data[key] + ' </p>';
+                    }
                 }
-                html = html + '<a href="/hello.html" class="btn btn-success" role="button">说句话吧</a>';
+                if (data['hello']) {
+                    html = html + '<a href="/hello.html" class="btn btn-success" role="button">在说句话吧</a>';
+                } else {
+                    html = html + '<a href="/hello.html" class="btn btn-success" role="button">你好像还沉默着</a>';
+                }
                 html = html + '</div>';
                 $("#message").append(html);
                 $('#myModal').modal({

@@ -52,6 +52,7 @@ function fsubmit(anti) {
                 for(var key in data) {
                     html = html+'<p>你的 ' + key + ' 是 : ' + data[key] + ' </p>';
                 }
+                html = html + '<a href="/hello.html" class="btn btn-success" role="button">说句话吧</a>';
                 html = html + '</div>';
                 $("#message").append(html);
                 $('#myModal').modal({
@@ -123,4 +124,4 @@ if (navigator.getUserMedia) {
 
 window.onload = function() {
     console.log("你看我干嘛？");
-}
+};

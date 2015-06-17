@@ -88,14 +88,14 @@
 
 (deflogin person-get
   []
-  (let [person-id (ns/get :user)
-        _ (println ">>>>>>>>>>>>>>>>>>>>>>" person-id)
-        body (get-person person-id)]
-    (json/write-str body)))
+  (let [person-id (-> req :user :id)
+        body (first (query ["select * from yxt_user where id = ?" person-id]))]
+    {:body body}))
 
 
 (defn login [st & {:keys [age gender] :as msg}]
   (println ">>>>>>>>>>>>>>>>>>>>>>" msg)
+  (assoc-session! :session-token st)
   {:sessonToken st}
   {:age age :gender gender})
 

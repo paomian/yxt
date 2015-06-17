@@ -36,37 +36,39 @@
 (defn parse [k date]
   (f/unparse formatter (cc/from-sql-time (k date))))
 
-
+(defn tras
+  [kmap]
+  (fn [data]
+    (reduce (fn [d [k f]]
+              (if (k d)
+                (assoc d k (f k d))
+                d))
+            data (merge {:created_at parse
+                         :updated_at parse}
+                        kmap))))
 
 (defmacro insert!
-  [table row-map]
-  `(jdbc/insert! (db-connection) ~table ~row-map))
+  [table row-map & kfun]
+  (let [kmap (apply hash-map kfun)]
+    `(map (tras ~kmap) (jdbc/insert! (db-connection) ~table ~row-map))))
 
 (defmacro query
   [sql & kfun]
   ;; kfun 形如 {key parse-fn}
   ;; {:created_at parse}
   ;; 为一个 query 的结果指定的 key 做处理
-  (let [kmap (merge
-              {:created_at parse
-               :updated_at parse}
-              (apply hash-map kfun))]
-    `(map (fn [data#] (reduce (fn [d# [k# f#]]
-                                (if (k# d#)
-                                  (assoc d# k# (f# k# d#))
-                                  d#))
-                              data# ~kmap))
-          (let [tmp# (jdbc/query (db-connection) ~sql)]
-            (clojure.pprint/pprint tmp#)
-            tmp#))))
+  (let [kmap (apply hash-map kfun)]
+    `(map (tras ~kmap) (jdbc/query (db-connection) ~sql))))
 
 (defmacro update!
-  [table new-map where]
-  `(jdbc/update! (db-connection) ~table ~new-map ~where))
+  [table new-map where & kfun]
+  (let [kmap (apply hash-map kfun)]
+    `(jdbc/update! (db-connection) ~table ~new-map ~where)))
 
 (defmacro delete!
-  [table where]
-  `(jdbc/delete! (db-connection) ~table where))
+  [table where & kfun]
+  (let [kmap (apply hash-map kfun)]
+    (jdbc/delete! (db-connection) ~table ~where)))
 
 (defn value-to-json-pgobject [value]
   (doto (PGobject.)

@@ -5,7 +5,20 @@
             [postal.core :as pc]
 
             [yxt.db :as d]
+            [yxt.wrap :refer [*yxt-session* *yxt-cookies*]]
             [yxt.key :as yk]))
+
+(defn assoc-session!
+  [key value]
+  (swap! *yxt-session* assoc key value))
+
+(defn dissoc-session!
+  [key]
+  (swap! *yxt-session* dissoc key))
+
+(defn assoc-cookies!
+  [key value]
+  (swap! *yxt-cookies* assoc key value))
 
 (defn rand-string [n]
   (->> (fn [] (rand-nth "abcdefghijklmnopqrstuvwxyz1234567890"))

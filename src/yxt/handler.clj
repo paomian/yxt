@@ -12,7 +12,8 @@
             [yxt.wrap :refer :all]
             [yxt.face :as yf]
             [yxt.db :as yd]
-            [yxt.redis :as yr]))
+            [yxt.redis :as yr]
+            [yxt.hearken :refer :all]))
 
 (defmacro mylog
   [s]
@@ -59,7 +60,7 @@
        (GET "/" [] (resp/redirect "/video.html"))
        (POST "/yxt" [] yf/yxt)
        (POST "/hearken" [] )
-       ;;(GET "/me" [] yf/person-get)
+       (GET "/me" [] yf/person-get)
        ;;(POST "/y" [] yu/tester)
        ;;(GET "/oauth" [] yu/redirect-uri)
        ;;(GET "/callback" [] yu/oauth)
@@ -67,6 +68,10 @@
                           "你知道递归么？"))
        (GET "/hhh" [] (fn [req] (swap! *yxt-session* dissoc :session-token)
                         "你可能不知道递归是什么？"))
+       (POST "/hello" [] hearken)
+       (GET "/byebye" [] (fn [req]
+                           (log/infof "byebye by request %s" (pr-str req))
+                           (yu/dissoc-session! :session-token) {:body {}}))
        (route/resources "/")
        (route/not-found "你获得了 yxt 独占成就 404"))
       wrap-json

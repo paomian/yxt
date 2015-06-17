@@ -9,7 +9,7 @@ CREATE TABLE yxt_user (
        session_token VARCHAR(100),
        nickname VARCHAR(50),
        gender VARCHAR(10),
-       age SMALLSERIAL,
+       age SMALLINT,
        user_info JSONB,
        PRIMARY KEY (id)
 );
@@ -59,3 +59,13 @@ CREATE TABLE yxt_comment (
 
 CREATE TRIGGER c_updated_at BEFORE UPDATE
 ON yxt_comment FOR EACH ROW EXECUTE PROCEDURE updated_at();
+
+DROP TABLE IF EXISTS yxt_hello;
+CREATE TABLE yxt_hello (
+   id SERIAL,
+   user_id INT,
+   created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (NOW() AT TIME ZONE 'UTC'),
+   hello VARCHAR(1000),
+   info JSONB,
+   PRIMARY KEY (id)
+);

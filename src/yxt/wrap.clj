@@ -53,13 +53,15 @@
   (let [{:keys [hello]} opts]
     (fn [request]
       (if-let [session-token (or
-                              (get (:session request) :session-token)
-                              (get (-> request :headers) "x-yxt-session-token"))]
+                              (get (-> request :headers) "x-yxt-session-token")
+                              (get (:session request) :session-token))]
         (if-let [data (get-user session-token)]
           (handler (assoc request :user data))
-          {:status 401
-           :headers {"Content-Type" "application/json;charset=UTF-8"}
-           :body "{\"error\":\"Malformed SessionToken\"}"})
+          (if (= (:uri request) "/byebye")
+            (handler request)
+            {:status 401
+             :headers {"Content-Type" "application/json;charset=UTF-8"}
+             :body "{\"error\":\"Malformed SessionToken\"}"}))
         (handler request)))))
 
 (declare ^:dynamic *yxt-session*)
@@ -75,8 +77,6 @@
         (-> resp
             (assoc :cookies (merge (:cookies resp) @*yxt-cookies*))
             (assoc :session @*yxt-session*))))))
-
-
 
 (defn wrap-test
   [handler]

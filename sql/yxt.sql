@@ -3,7 +3,7 @@ CREATE TABLE yxt_user (
        id SERIAL,
        created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (NOW() AT TIME ZONE 'UTC'),
        updated_at TIMESTAMP WITHOUT TIME ZONE,
-       pic_path VARCHAR(100),
+       pic_name VARCHAR(100),
        person_id VARCHAR(100),
        email VARCHAR(100),
        session_token VARCHAR(100),

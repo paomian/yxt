@@ -48,7 +48,6 @@
   [handler & opts]
   (let [{:keys [hello]} opts]
     (fn [request]
-      (clojure.pprint/pprint (:session request))
       (if-let [session-token (or
                               (get (-> request :headers) "x-yxt-session-token")
                               (get (:session request) :session-token))]

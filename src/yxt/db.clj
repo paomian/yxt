@@ -1,7 +1,10 @@
 (ns yxt.db
   (:require [clojure.java.jdbc :as jdbc]
             [clojure.data.json :as json]
-            [clj-time [format :as f] [coerce :as cc]]
+            [clj-time
+             [format :as f]
+             [coerce :as cc]
+             [core :as t]]
 
             [yxt.key :refer :all])
   (:import [com.mchange.v2.c3p0 ComboPooledDataSource]
@@ -34,7 +37,8 @@
 (def formatter (f/formatter "yyyy-MM-dd HH:mm:ss"))
 
 (defn parse [k date]
-  (f/unparse formatter (cc/from-sql-time (k date))))
+  (f/unparse formatter (t/minus (cc/from-sql-time (k date))
+                                       (t/hours 8))))
 
 (defn tras
   [kmap]

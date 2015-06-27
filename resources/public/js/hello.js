@@ -1,4 +1,3 @@
-console.log('hello world');
 var submit = $('#submit');
 window.onload = function() {
     var hello = $('#hello');

@@ -13,3 +13,4 @@ key.clj
 *.jpg
 *.js
 *.log
+resources/public/css/

@@ -28,6 +28,7 @@
                  [secretary "1.2.3"]
                  [cljs-ajax "0.3.13"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+                 [prismatic/dommy "1.1.0"]
                  [crypto-password "0.1.3"]]
 
   :source-paths ["src/clj" "src/cljs"]

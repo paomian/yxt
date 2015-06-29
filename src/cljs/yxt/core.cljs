@@ -13,13 +13,23 @@
 
 (def app (js/document.getElementById "main"))
 
+(defn do-undo
+  [data owner e]
+  (when (> (count (:texts (om/get-state owner :version))) 1)
+    ;; remove the last spapshot from the undo list.
+    (om/update-state! owner [:version :texts] pop)
+
+    ;; Restore the last snapshot into tasklist
+    ;; application state
+    (om/set-state! owner :text (:text (last (om/get-state owner
+                                                          [:version :texts]))))))
+
 (defn hello [data owner]
   (reify
     om/IInitState
     (init-state [_]
       {:secondsElapsed 0
        :text ""
-       :empty true
        :auto false
        :save (chan)
        :version {:texts [{:text ""}]}})
@@ -57,11 +67,11 @@
                                   :handler (fn [data] (js/console.log data))
                                   :error-handler (fn [data] (js/console.log data))}))
                          :error-handler
-                         (fn [rsp]
-                           (js/console.log rsp))))))
+                         (fn [[ok res]]
+                           (js/console.log ok res))))))
               (recur)))))
     om/IRenderState
-    (render-state [_ {:keys [text empty secondsElapsed]}]
+    (render-state [_ {:keys [text secondsElapsed]}]
       (odom/section nil
                     (odom/div
                      {:class "row"}
@@ -72,18 +82,14 @@
                       (odom/h1 {:style {:text-align "center"}} "Hello Yxt")
                       (odom/textarea
                        {:class "form-control"
-                        :row "3"
-                        ;;:defaultValue text
+                        :rows "15"
+                        :value text
                         :placeholder "Hello Yxt!"
                         :on-change (fn [e]
                                      (om/set-state! owner :auto false)
                                      (om/set-state! owner :secondsElapsed 0)
                                      (let [val (.. e -target -value)]
-                                       (om/set-state! owner :text val)
-                                       (if (and val
-                                                (not= "" val))
-                                         (om/set-state! owner :empty false)
-                                         (om/set-state! owner :empty true))))})))
+                                       (om/set-state! owner :text val)))})))
                     (odom/br)
                     (odom/br)
                     (odom/div
@@ -93,8 +99,15 @@
                       (odom/button
                        {:type "button"
                         :class "btn btn-success btn-lg"
-                        :disabled empty
-                        :on-click #(js/console.log "hello")} "Say Hello")))))))
+                        :disabled (= "" (om/get-state owner :text))
+                        :on-click #(js/console.log "hello")} "Hello")
+                      (odom/span
+                       {:style {:margin-right "50px"
+                                :margin-left "50px"}})
+                      (odom/button
+                       {:type "button"
+                        :class "btn btn-success btn-lg"
+                        :on-click #(do-undo data owner %)} "Undo ")))))))
 
 (defroute home-path "/" []
   (om/root hello {}

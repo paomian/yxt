@@ -30,6 +30,7 @@
     (init-state [_]
       {:secondsElapsed 0
        :text ""
+       :title ""
        :auto false
        :save (chan)
        :version {:texts [{:text ""}]}})
@@ -46,7 +47,7 @@
       (let [save (om/get-state owner :save)]
         (go (loop []
               (let [sec (<! save)]
-                (when (and (= 10 sec)
+                (when (and (= 5 sec)
                            (not (om/get-state owner :auto)))
                   (om/set-state! owner :auto true)
                   (when-not (= (-> (om/get-state owner [:version :texts])
@@ -76,10 +77,18 @@
                     (odom/div
                      {:class "row"}
                      (odom/div
-                      {:class "col-md-6 col-md-offset-3"}
-                      (odom/span nil secondsElapsed)
-                      (odom/span nil (om/get-state owner :text))
-                      (odom/h1 {:style {:text-align "center"}} "Hello Yxt")
+                      {:class "col-md-5 col-md-offset-1"}
+                      (odom/div
+                       {:class "col-md-8 col-md-offset-2"
+                        :style {:margin-top "20px"
+                                :margin-bottom "20px"}}
+                       (odom/input {:value (om/get-state owner :title)
+                                    :class "form-control"
+                                    :style {:text-align "center"}
+                                    :on-change (fn [e]
+                                                 (om/set-state!
+                                                  owner :title
+                                                  (.. e -target -value)))}))
                       (odom/textarea
                        {:class "form-control"
                         :rows "15"
@@ -89,25 +98,28 @@
                                      (om/set-state! owner :auto false)
                                      (om/set-state! owner :secondsElapsed 0)
                                      (let [val (.. e -target -value)]
-                                       (om/set-state! owner :text val)))})))
-                    (odom/br)
-                    (odom/br)
-                    (odom/div
-                     {:class "row"}
+                                       (om/set-state! owner :text val)))})
+                      (odom/br)
+                      (odom/br)
+                      (odom/div
+                       {:style {:text-align "center"}}
+                       (odom/button
+                        {:type "button"
+                         :class "btn btn-success btn-lg"
+                         :disabled (= "" (om/get-state owner :text))
+                         :on-click #(js/console.log "hello")} "Hello")
+                       (odom/span
+                        {:style {:margin-right "50px"
+                                 :margin-left "50px"}})
+                       (odom/button
+                        {:type "button"
+                         :class "btn btn-success btn-lg"
+                         :on-click #(do-undo data owner %)} "Undo ")))
                      (odom/div
-                      {:style {:text-align "center"}}
-                      (odom/button
-                       {:type "button"
-                        :class "btn btn-success btn-lg"
-                        :disabled (= "" (om/get-state owner :text))
-                        :on-click #(js/console.log "hello")} "Hello")
-                      (odom/span
-                       {:style {:margin-right "50px"
-                                :margin-left "50px"}})
-                      (odom/button
-                       {:type "button"
-                        :class "btn btn-success btn-lg"
-                        :on-click #(do-undo data owner %)} "Undo ")))))))
+                      {:class "col-md-5"}
+                      (odom/h1 {:style {:text-align "center"}}
+                               (om/get-state owner :title))
+                      (odom/p nil (om/get-state owner :text))))))))
 
 (defroute home-path "/" []
   (om/root hello {}

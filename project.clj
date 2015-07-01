@@ -2,17 +2,19 @@
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :min-lein-version "2.0.0"
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 #_[org.clojure/clojure "1.7.0-RC2"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
                  [compojure "1.3.4"]
                  [clj-http "1.1.1"]
                  [org.clojure/data.json "0.2.6"]
-                 [ring/ring-defaults "0.1.2"]
+                 [ring/ring-defaults "0.1.2"
+                  :exclusions [ring/ring-core]]
+                 [ring/ring-core "1.4.0-RC1"]
                  [org.clojure/tools.logging "0.3.1"]
-                 [log4j/log4j "1.2.17" :exclusions [javax.mail/mail
-                                                    javax.jms/jms
-                                                    com.sun.jdmk/jmxtools
-                                                    com.sun.jmx/jmxri]]
+                 [log4j/log4j "1.2.17"
+                  :exclusions [javax.mail/mail
+                               javax.jms/jms
+                               com.sun.jdmk/jmxtools
+                               com.sun.jmx/jmxri]]
                  [org.clojure/java.jdbc "0.3.6"]
                  [org.postgresql/postgresql "9.4-1201-jdbc41"]
                  [com.mchange/c3p0 "0.9.5"]
@@ -22,7 +24,7 @@
                  [com.taoensso/carmine "2.10.0"]
                  [org.clojure/tools.nrepl "0.2.10"]
                  [com.draines/postal "1.11.3"]
-                 [org.clojure/clojurescript "0.0-3178"]
+                 [org.clojure/clojurescript "0.0-3308"]
                  [org.omcljs/om "0.8.8"]
                  [prismatic/om-tools "0.3.11"]
                  [secretary "1.2.3"]

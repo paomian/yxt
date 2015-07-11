@@ -75,7 +75,6 @@
   (build-request-map [request]
     (servlet/build-request-map request))
 
-  ;;ServletUpgradeRequest
   UpgradeRequest
   (build-request-map [request]
     {:uri (.getPath (.getRequestURI request))
@@ -148,8 +147,7 @@
   (proxy [WebSocketHandler] []
     (configure [^WebSocketServletFactory factory]
       (-> (.getPolicy factory)
-          (.setIdleTimeout ws-max-idle-time)
-          )
+          (.setIdleTimeout ws-max-idle-time))
       (.setCreator factory (reify-ws-creator ws-fns)))))
 
 (defn- proxy-handler

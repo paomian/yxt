@@ -8,7 +8,7 @@
                  [org.clojure/data.json "0.2.6"]
                  [ring/ring-defaults "0.1.2"
                   :exclusions [ring/ring-core]]
-                 [ring/ring-core "1.4.0-RC1"]
+                 [ring/ring-core "1.4.0-RC2"]
                  [org.clojure/tools.logging "0.3.1"]
                  [log4j/log4j "1.2.17"
                   :exclusions [javax.mail/mail
@@ -31,11 +31,17 @@
                  [cljs-ajax "0.3.13"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [prismatic/dommy "1.1.0"]
-                 [crypto-password "0.1.3"]]
+                 [crypto-password "0.1.3"]
+                 [org.eclipse.jetty/jetty-server "9.3.0.v20150612"]
+                 [org.eclipse.jetty.websocket/websocket-server "9.3.0.v20150612"]
+                 [org.eclipse.jetty.websocket/websocket-servlet "9.3.0.v20150612"]
+                 [org.eclipse.jetty.http2/http2-server "9.3.0.v20150612"]
+                 [org.clojure/tools.nrepl "0.2.10"]]
 
   :source-paths ["src/clj" "src/cljs"]
   :plugins [[lein-ring "0.9.6"]
             [lein-cljsbuild "1.0.6"]]
+  :main yxt.handler
   :cljsbuild {:builds
               {:dev
                {;; clojurescript source code path

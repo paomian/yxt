@@ -7,13 +7,18 @@
             [noir.session :as ns]
             [clojure.tools.logging :as log]
             [ring.util.response :as resp]
+            [clojure.tools.nrepl.server :refer [start-server]]
+            [ring.middleware.reload :refer [wrap-reload]]
+            [clojure.tools.logging :as log]
 
             [yxt.util :as yu]
             [yxt.wrap :refer :all]
             [yxt.face :as yf]
             [yxt.db :as yd]
             [yxt.redis :as yr]
-            [yxt.hearken :refer :all]))
+            [yxt.hearken :refer :all]
+            [yxt.adapter :refer [run-jetty]]
+            [yxt.ws :refer [ws-handler]]))
 
 (defmacro mylog
   [s]
@@ -77,3 +82,15 @@
       wrap-session-token
       wrap-yxt-sc
       (wrap-defaults site-defaults)))
+
+(defonce dev? true)
+
+(defn -main
+  [& args]
+  (let [handler (if dev?
+                  (wrap-reload app)
+                  app)]
+    (println "Server start port 3000 and repl 7845")
+    (start-server :port 7845)
+    (run-jetty handler {:websockets {"/yxt/ws" ws-handler}
+                        :port 3000})))

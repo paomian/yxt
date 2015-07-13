@@ -1,5 +1,6 @@
 (ns yxt.chat
   (:require [om.core :as om]
+            [om.dom :as dom]
             [om-tools.dom :as odom]))
 
 (enable-console-print!)
@@ -17,8 +18,16 @@
   (let [time (:time state)
         msg (:message state)
         user (:user state)]
-    (odom/li nil
-             (odom/span (str user ": " msg)))))
+    (odom/div
+     {:class (if (= user "Admin")
+               "panel panel-primary"
+               "panel panel-info")}
+     (odom/div
+      {:class "panel-heading"}
+      (str user " 说："))
+     (odom/div
+      {:class "panel-body"}
+      msg))))
 
 (defn fchathistory
   [state owner]
@@ -31,13 +40,20 @@
     (render [_]
       (render-chathistory state owner))))
 
-(defn- send
-  "On tasklist form submit callback."
+(defn- button-send
   [state event {:keys [ws] :as local}]
   (let [input (js/document.querySelector "[name=message]")
         message  (.-value input)]
     (set! (.-value input) "")
     (.send ws message)))
+
+(defn- keydown-send
+  [state event {:keys [ws] :as local}]
+  (let [input (js/document.querySelector "[name=message]")
+        message  (.-value input)]
+    (when (= 13 (.-keyCode event))
+      (set! (.-value input) "")
+      (.send ws message))))
 
 (defn- close
   [_ _ {:keys [ws] :as local}]
@@ -68,19 +84,27 @@
       (odom/section
        nil
        (odom/div
-        nil
+        {:class "container"}
+        (apply
+         odom/div
+         nil
+         (odom/button {:on-click #(close state % local)
+                       :class "btn btn-warning btn-lg btn-block"} "关闭")
+         (for [item (:history state)]
+           (om/build fchathistory item {:key :time})))
         (odom/div
          nil
-         (apply odom/ul
-                (for [item (:history state)]
-                  (om/build fchathistory item {:key :time}))))
-        (odom/div
-         nil
-         (odom/input {:type "text"
-                      :name "message"
-                      :placeholder "Write your message..."})
-         (odom/button {:on-click #(send state % local)} "发一条试试")
-         (odom/button {:on-click #(close state % local)} "关闭")))))))
+         (odom/div
+          {:class "row"}
+          (odom/div
+           {:class "col-xs-12"}
+           (odom/input {:type "text"
+                        :name "message"
+                        :class "form-control"
+                        :placeholder "Write your message..."
+                        :on-key-down #(keydown-send state % local)})))
+         (odom/button {:on-click #(button-send state % local)
+                       :class "btn btn-primary btn-lg btn-block"} "发一条试试")))))))
 
 (defn ^:export main
   []

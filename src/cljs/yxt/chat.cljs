@@ -46,7 +46,8 @@
         message  (.-value input)]
     (when (not= message "")
       (set! (.-value input) "")
-      (.send ws message))))
+      (.send ws (js/JSON.stringify
+                 (clj->js{:message message}))))))
 
 (defn- keydown-send
   [state event {:keys [ws] :as local}]
@@ -55,7 +56,8 @@
     (when (and (= 13 (.-keyCode event))
                (not= message ""))
       (set! (.-value input) "")
-      (.send ws message))))
+      (.send ws (js/JSON.stringify
+                 (clj->js{:message message}))))))
 
 (defn- close
   [_ _ {:keys [ws] :as local}]
@@ -73,10 +75,16 @@
         (set! (.-onopen ws) (fn [evt]
                               (println "connect success")))
         (set! (.-onmessage ws) (fn [evt]
-                                 (let [data (.-data evt)
-                                       data (js->clj (js/JSON.parse data) :keywordize-keys true)]
-                                   (om/transact!
-                                    state :history #(conj % data)))))
+                                 (let [data (.-data evt)]
+                                   (if (= data "pong")
+                                     (println "heard go on")
+                                     (om/transact!
+                                      state :history
+                                      #(conj
+                                        %
+                                        (js->clj
+                                         (js/JSON.parse data)
+                                         :keywordize-keys true)))))))
         (set! (.-onerror ws) (fn [evt]
                                (println "error")))
         (set! (.-onclose ws) (fn [evt]
@@ -88,7 +96,11 @@
                                 :history
                                 #(conj % {:user "Admin"
                                           :message "You are leave this room"
-                                          :time 1888888}))))))
+                                          :time 1888888}))))
+        (js/setInterval (fn []
+                          (when (= (.-readyState ws) 1)
+                              (.send ws "ping")))
+                        10000)))
     om/IRenderState
     (render-state [_ local]
       (odom/section

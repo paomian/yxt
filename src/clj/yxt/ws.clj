@@ -49,6 +49,13 @@
                                           (map (fn [[_ m]] (:user m)) @whole)))
                                :time (System/currentTimeMillis)}))))
 
+(defn admin-msg
+  [message]
+  (json/write-str
+   {:message message
+    :user "Admin"
+    :time (System/currentTimeMillis)}))
+
 (defn on-close
   [^WebSocketProtocol ws status reason]
   (let [user (:user (get @whole ws))]
@@ -60,8 +67,18 @@
 (defn on-text
   [^WebSocketProtocol ws ^String text-message]
   (when (not= text-message "")
-    (log/infof "%s send message: %s" (get @whole ws) text-message)
-    (notic ws text-message)))
+    (if (= text-message "ping")
+      (send! ws "pong")
+      (let [{:keys [message]} (try (json/read-str text-message
+                                              :key-fn keyword)
+                               (catch Exception _
+                                 (log/warnf "%s send message: %s"
+                                            (get @whole ws) text-message)))]
+        (if message
+          (do
+            (log/infof "%s send message: %s" (get @whole ws) text-message)
+            (notic ws message))
+          (send! ws (admin-msg "You send a invalid message.")))))))
 
 (def ws-handler
   {:on-connect on-conn
@@ -69,5 +86,5 @@
                (log/error e))
    :on-close on-close
    :on-text on-text
-   :on-bytes (fn [^WebSocketProtocol ws bytes offset len]
-               (println "hello"))})
+   :on-bytes (fn [^WebSocketProtocol ws b offset len]
+               (send! ws (admin-msg "You send a invalid message.")))})

@@ -59,13 +59,15 @@
 
 (defn on-text
   [^WebSocketProtocol ws ^String text-message]
-  (log/infof "%s send message: %s" (get @whole ws) text-message)
-  (notic ws text-message))
+  (when (not= text-message "")
+    (log/infof "%s send message: %s" (get @whole ws) text-message)
+    (notic ws text-message)))
 
-(def ws-handler {:on-connect on-conn
-                 :on-error (fn [^WebSocketProtocol ws e]
-                             )
-                 :on-close on-close
-                 :on-text on-text
-                 :on-bytes (fn [^WebSocketProtocol ws bytes offset len]
-                             (println "hello"))})
+(def ws-handler
+  {:on-connect on-conn
+   :on-error (fn [^WebSocketProtocol ws e]
+               (log/error e))
+   :on-close on-close
+   :on-text on-text
+   :on-bytes (fn [^WebSocketProtocol ws bytes offset len]
+               (println "hello"))})

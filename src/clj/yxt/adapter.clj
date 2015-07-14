@@ -289,7 +289,7 @@
   :client-auth - SSL client certificate authenticate, may be set to :need, :want or :none (defaults to :none)
   :websockets - a map from context path to a map of handler fns:
 
-  {\"/context\" {:on-connect #(create-fn %)                ; ^Session ws-session
+  {\"/context\" {:on-connect #(create-fn %)              ; ^Session ws-session
                 :on-text   #(text-fn % %2 %3 %4)         ; ^Session ws-session message
                 :on-bytes  #(binary-fn % %2 %3 %4 %5 %6) ; ^Session ws-session payload offset len
                 :on-close  #(close-fn % %2 %3 %4)        ; ^Session ws-session statusCode reason

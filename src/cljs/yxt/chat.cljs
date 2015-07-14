@@ -9,7 +9,7 @@
 
 (def chathistory (atom {:history []}))
 
-(add-watch chathistory :chat
+#_(add-watch chathistory :chat
            (fn [_ _ _ n]
              (println n)))
 
@@ -59,6 +59,21 @@
   [_ _ {:keys [ws] :as local}]
   (.close ws))
 
+(defn- ws-state
+  [state owner]
+  (let [ws (om/get-state owner :ws)
+        [info class] (case (.-readyState ws)
+                       0 ["连接中" "alert-info"]
+                       1 ["已连接" "alert-success"]
+                       2 ["正在关闭" "alert-alert-warning"]
+                       3 ["已关闭" "alert-danger"]
+                       ["未知原因" "alert-danger"])]
+    (odom/div
+     {:class class
+      :role="alert"}
+     (odom/h2
+      nil info))))
+
 
 (defn chat
   [state owner]
@@ -76,15 +91,18 @@
                                        data (js->clj (js/JSON.parse data) :keywordize-keys true)]
                                    (om/transact! state :history #(conj % data)))))
         (set! (.-onerror ws) (fn [evt]
-                               (js/alert "error")))
+                               (println "error")))
         (set! (.-onclose ws) (fn [evt]
-                               (js/alert "close")))))
+                               (println (str "Websocket close code: "
+                                             (.-code evt) " reason: "
+                                             (.-reason evt)))))))
     om/IRenderState
     (render-state [_ local]
       (odom/section
        nil
        (odom/div
         {:class "container"}
+        (ws-state state owner)
         (apply
          odom/div
          nil

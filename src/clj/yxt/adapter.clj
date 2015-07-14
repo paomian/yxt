@@ -243,7 +243,7 @@
                          (.setHost host)
                          (.setIdleTimeout max-idle-time))
 
-        secure-connection-factory [(HttpConnectionFactory. http-configuration)]
+        secure-connection-factory (list (HttpConnectionFactory. http-configuration))
         secure-connection-factory (if h2?
                                     (conj secure-connection-factory
                                           (HTTP2ServerConnectionFactory. http-configuration))
@@ -277,6 +277,7 @@
   :keystore - the keystore to use for SSL connections
   :keystore-type - the format of keystore
   :key-password - the password to the keystore
+  :key-manager-password - the password for key manager
   :truststore - a truststore to use for SSL connections
   :truststore-type - the format of trust store
   :trust-password - the password to the truststore

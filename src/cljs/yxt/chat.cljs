@@ -44,14 +44,16 @@
   [state event {:keys [ws] :as local}]
   (let [input (js/document.querySelector "[name=message]")
         message  (.-value input)]
-    (set! (.-value input) "")
-    (.send ws message)))
+    (when (not= message "")
+      (set! (.-value input) "")
+      (.send ws message))))
 
 (defn- keydown-send
   [state event {:keys [ws] :as local}]
   (let [input (js/document.querySelector "[name=message]")
         message  (.-value input)]
-    (when (= 13 (.-keyCode event))
+    (when (and (= 13 (.-keyCode event))
+               (not= message ""))
       (set! (.-value input) "")
       (.send ws message))))
 

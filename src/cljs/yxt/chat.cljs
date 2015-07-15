@@ -117,35 +117,35 @@
                 2 "正在关闭"
                 3 "已关闭"
                 "未知原因")))
-        (apply
-         odom/div
-          {:class "row"}
+        (odom/div
+         {:class "row"}
+         (odom/div
+          {:class "span12 well"}
           (odom/div
-           {:class "span12 well"}
-           (odom/div
-            {:class "span12"}
-            (odom/button {:on-click #(close state % local)
-                          :class "btn btn-warning btn-lg btn-block"} "关闭")
-            (odom/br)(odom/br)(odom/br)(odom/br)
-            (odom/div
-             {:class "span10"}
-             (for [item (:history state)]
+           {:class "span12"}
+           (odom/button {:on-click #(close state % local)
+                         :class "btn btn-warning btn-lg btn-block"} "关闭")
+           (odom/br)(odom/br)(odom/br)(odom/br)
+           (apply
+            odom/div
+            {:class "span10"}
+            (for [item (:history state)]
               (om/build fchathistory item {:key :time})))
-            (odom/br)(odom/br)(odom/br)(odom/br)(odom/br)
-            (odom/div
-             {:class "span10"}
-             (odom/input {:type "text"
-                          :name "message"
-                          :class "input-xlarge span10"
-                          :placeholder "Write your message..."
-                          :on-key-down #(keydown-send state % local)})
-             (odom/br)(odom/br)))
-           (odom/br)(odom/br)
+           (odom/br)(odom/br)(odom/br)(odom/br)(odom/br)
            (odom/div
-            {:class "span12"}
-            (odom/button {:on-click #(button-send state % local)
-                          :class "btn btn-primary btn-large span10"} "发一条试试"))
-           (odom/br)(odom/br)(odom/br)(odom/br))))))))
+            {:class "span10"}
+            (odom/input {:type "text"
+                         :name "message"
+                         :class "input-xlarge span10"
+                         :placeholder "Write your message..."
+                         :on-key-down #(keydown-send state % local)})
+            (odom/br)(odom/br)))
+          (odom/br)(odom/br)
+          (odom/div
+           {:class "span12"}
+           (odom/button {:on-click #(button-send state % local)
+                         :class "btn btn-primary btn-large span10"} "发一条试试"))
+          (odom/br)(odom/br)(odom/br)(odom/br))))))))
 
 
 

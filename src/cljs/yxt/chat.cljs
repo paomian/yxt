@@ -20,14 +20,15 @@
         user (:user state)]
     (odom/div
      {:class (if (= user "Admin")
-               "panel panel-primary"
-               "panel panel-info")}
-     (odom/div
-      {:class "panel-heading"}
+               "alert alert-info"
+               "alert alert-success")}
+     (odom/h4
+      {:class "alert-heading"}
       (str user " 说："))
-     (odom/div
+     (odom/p
       {:class "panel-body"}
       msg))))
+
 
 (defn fchathistory
   [state owner]
@@ -94,14 +95,8 @@
        (odom/div
         {:class "container"}
         (odom/div
-         {:class (case (.-readyState (om/get-state owner :ws))
-                   0 "alert-info"
-                   1 "alert-success"
-                   2 "alert-alert-warning"
-                   3 "alert-danger"
-                   "alert-danger")
-          :role="alert"}
-         (odom/h2
+         {:class "page-header"}
+         (odom/h1
           nil (case (.-readyState (om/get-state owner :ws))
                 0 "连接中"
                 1 "已连接"
@@ -110,24 +105,35 @@
                 "未知原因")))
         (apply
          odom/div
-         nil
-         (odom/button {:on-click #(close state % local)
-                       :class "btn btn-warning btn-lg btn-block"} "关闭")
-         (for [item (:history state)]
-           (om/build fchathistory item {:key :time})))
-        (odom/div
-         nil
-         (odom/div
           {:class "row"}
           (odom/div
-           {:class "col-xs-12"}
-           (odom/input {:type "text"
-                        :name "message"
-                        :class "form-control"
-                        :placeholder "Write your message..."
-                        :on-key-down #(keydown-send state % local)})))
-         (odom/button {:on-click #(button-send state % local)
-                       :class "btn btn-primary btn-lg btn-block"} "发一条试试")))))))
+           {:class "span12 well"}
+           (odom/div
+            {:class "span12"}
+            (odom/button {:on-click #(close state % local)
+                          :class "btn btn-warning btn-lg btn-block"} "关闭")
+            (odom/br)(odom/br)(odom/br)(odom/br)
+            (odom/div
+             {:class "span10"}
+             (for [item (:history state)]
+              (om/build fchathistory item {:key :time})))
+            (odom/br)(odom/br)(odom/br)(odom/br)(odom/br)
+            (odom/div
+             {:class "span10"}
+             (odom/input {:type "text"
+                          :name "message"
+                          :class "input-xlarge span10"
+                          :placeholder "Write your message..."
+                          :on-key-down #(keydown-send state % local)})
+             (odom/br)(odom/br)))
+           (odom/br)(odom/br)
+           (odom/div
+            {:class "span12"}
+            (odom/button {:on-click #(button-send state % local)
+                          :class "btn btn-primary btn-large span10"} "发一条试试"))
+           (odom/br)(odom/br)(odom/br)(odom/br))))))))
+
+
 
 (defn ^:export main
   []

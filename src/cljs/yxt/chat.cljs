@@ -5,7 +5,7 @@
 
 (enable-console-print!)
 
-(def app (js/document.getElementById "main"))
+(def app (js/document.getElementById "yxt-main"))
 
 (def chathistory (atom {:history []}))
 
@@ -104,48 +104,41 @@
                         10000)))
     om/IRenderState
     (render-state [_ local]
-      (odom/section
-       nil
+      (odom/div
+       {:class "container"}
        (odom/div
-        {:class "container"}
+        {:class "page-header"}
+        (odom/h1
+         nil (case (.-readyState (om/get-state owner :ws))
+               0 "连接中"
+               1 "已连接"
+               2 "正在关闭"
+               3 "已关闭"
+               "未知原因")))
+       (odom/div
+        {:class "row"}
         (odom/div
-         {:class "page-header"}
-         (odom/h1
-          nil (case (.-readyState (om/get-state owner :ws))
-                0 "连接中"
-                1 "已连接"
-                2 "正在关闭"
-                3 "已关闭"
-                "未知原因")))
-        (odom/div
-         {:class "row"}
+         {:class "span12 well"}
          (odom/div
-          {:class "span12 well"}
+          {:class "span12"}
+          (odom/button {:on-click #(close state % local)
+                        :class "btn btn-warning btn-lg btn-block"} "关闭")
+          (apply
+           odom/div
+           {:class "span10"}
+           (for [item (:history state)]
+             (om/build fchathistory item {:key :time})))
           (odom/div
-           {:class "span12"}
-           (odom/button {:on-click #(close state % local)
-                         :class "btn btn-warning btn-lg btn-block"} "关闭")
-           (odom/br)(odom/br)(odom/br)(odom/br)
-           (apply
-            odom/div
-            {:class "span10"}
-            (for [item (:history state)]
-              (om/build fchathistory item {:key :time})))
-           (odom/br)(odom/br)(odom/br)(odom/br)(odom/br)
-           (odom/div
-            {:class "span10"}
-            (odom/input {:type "text"
-                         :name "message"
-                         :class "input-xlarge span10"
-                         :placeholder "Write your message..."
-                         :on-key-down #(keydown-send state % local)})
-            (odom/br)(odom/br)))
-          (odom/br)(odom/br)
-          (odom/div
-           {:class "span12"}
-           (odom/button {:on-click #(button-send state % local)
-                         :class "btn btn-primary btn-large span10"} "发一条试试"))
-          (odom/br)(odom/br)(odom/br)(odom/br))))))))
+           {:class "span10"}
+           (odom/input {:type "text"
+                        :name "message"
+                        :class "input-xlarge span10"
+                        :placeholder "Write your message..."
+                        :on-key-down #(keydown-send state % local)})))
+         (odom/div
+          {:class "span12"}
+          (odom/button {:on-click #(button-send state % local)
+                        :class "btn btn-primary btn-large span10"} "发一条试试"))))))))
 
 
 

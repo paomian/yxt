@@ -9,5 +9,8 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 key.clj
+*.png
+*.jpg
+*.js
 *.log
 resources/public/css/

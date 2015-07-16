@@ -126,7 +126,7 @@
          odom/div
          nil
          (odom/button {:on-click #(close state % local)
-                       :class "btn btn-warning btn-lg btn-block"} "关闭")
+                       :class "btn btn-warning btn-lg btn-block span10"} "关闭")
          (for [item (:history state)]
            (om/build fchathistory item {:key :time})))
         (odom/div

@@ -66,6 +66,12 @@
 
 (defn on-text
   [^WebSocketProtocol ws ^String text-message]
+  (let [res (get-resp ws)]
+    (println (.isCommitted res))
+    (when (not
+           (.isCommitted res))
+      (.sendForbidden res "yxt fb")
+      (.complete res)))
   (when (not= text-message "")
     (if (= text-message "ping")
       (send! ws "pong")

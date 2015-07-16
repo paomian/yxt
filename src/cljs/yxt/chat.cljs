@@ -5,7 +5,7 @@
 
 (enable-console-print!)
 
-(def app (js/document.getElementById "main"))
+(def app (js/document.getElementById "yxt-main"))
 
 (def chathistory (atom {:history []}))
 
@@ -20,14 +20,15 @@
         user (:user state)]
     (odom/div
      {:class (if (= user "Admin")
-               "panel panel-primary"
-               "panel panel-info")}
-     (odom/div
-      {:class "panel-heading"}
+               "alert alert-info"
+               "alert alert-success")}
+     (odom/h4
+      {:class "alert-heading"}
       (str user " 说："))
-     (odom/div
+     (odom/p
       {:class "panel-body"}
       msg))))
+
 
 (defn fchathistory
   [state owner]
@@ -104,9 +105,8 @@
     om/IRenderState
     (render-state [_ local]
       (odom/section
-       nil
        (odom/div
-        {:class "container"}
+        {:class "page-header"}
         (odom/div
          {:class (case (.-readyState (om/get-state owner :ws))
                    0 "alert-info"
@@ -116,32 +116,41 @@
                    "alert-danger")
           :role="alert"}
          (odom/h2
-          nil (case (.-readyState (om/get-state owner :ws))
-                0 "连接中"
-                1 "已连接"
-                2 "正在关闭"
-                3 "已关闭"
-                "未知原因")))
-        (apply
-         odom/div
-         nil
-         (odom/button {:on-click #(close state % local)
-                       :class "btn btn-warning btn-lg btn-block span10"} "关闭")
-         (for [item (:history state)]
-           (om/build fchathistory item {:key :time})))
+          {:style {:text-align "center"}}
+          (case (.-readyState (om/get-state owner :ws))
+            0 "连接中"
+            1 "已连接"
+            2 "正在关闭"
+            3 "已关闭"
+            "未知原因"))))
+       (odom/div
+        {:class "page-header"}
         (odom/div
          nil
+         (odom/p
+          nil
+          (odom/button {:on-click #(close state % local)
+                        :class "btn btn-warning btn-lg btn-block"} "关闭"))
          (odom/div
-          {:class "row"}
+          nil
+          (apply
+           odom/div
+           nil
+           (for [item (:history state)]
+             (om/build fchathistory item {:key :time})))
           (odom/div
-           {:class "col-xs-12"}
+           nil
            (odom/input {:type "text"
                         :name "message"
-                        :class "form-control"
+                        :class "input-xlarge span12"
                         :placeholder "Write your message..."
-                        :on-key-down #(keydown-send state % local)})))
+                        :on-key-down #(keydown-send state % local)}))))
+        (odom/div
+         nil
          (odom/button {:on-click #(button-send state % local)
                        :class "btn btn-primary btn-lg btn-block"} "发一条试试")))))))
+
+
 
 (defn ^:export main
   []

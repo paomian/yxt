@@ -8,7 +8,7 @@
                  [org.clojure/data.json "0.2.6"]
                  [ring/ring-defaults "0.1.2"
                   :exclusions [ring/ring-core]]
-                 [ring/ring-core "1.4.0-RC2"]
+                 [ring/ring-core "1.4.0"]
                  [org.clojure/tools.logging "0.3.1"]
                  [log4j/log4j "1.2.17"
                   :exclusions [javax.mail/mail

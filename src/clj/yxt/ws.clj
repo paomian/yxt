@@ -3,6 +3,8 @@
                                  remote-addr idle-timeout!
                                  idle-timeout connected?
                                  get-req get-resp]]
+            [yxt.util :refer [defhandler deflogin]]
+
             [clojure.data.json :as json]
             [clojure.tools.logging :as log]
             [clojure.string :as s])
@@ -33,19 +35,11 @@
                                 :time (System/currentTimeMillis)})))))
                  @whole)))))
 
-(defn resolve-cookie
-  [^String cookie]
-  (let [cookies (s/split cookie #";")]
-    (reduce (fn [m ^String s]
-              (let [[k v] (s/split s #"=")]
-                (assoc m (keyword k) v)))
-            {} cookies)))
-
 (defn on-conn
-  [^WebSocketProtocol ws]
+  [data ^WebSocketProtocol ws]
+  (println "conn" data)
   (let [req (get-req ws)
-        cookies (get-in req [:headers :cookie])
-        cookies (resolve-cookie cookies)]
+        cookies (get-in req [:headers :cookie])]
     (if (empty? @whole)
       (swap! whole assoc ws {:user "yxt1"})
       (let [c (count @whole)
@@ -68,7 +62,8 @@
     :time (System/currentTimeMillis)}))
 
 (defn on-close
-  [^WebSocketProtocol ws status reason]
+  [data ^WebSocketProtocol ws status reason]
+  (println "close" data)
   (let [user (:user (get @whole ws))]
     (log/infof "%s close ws,code:%s reason:%s" user status reason)
     (when-not (empty? @whole)
@@ -76,7 +71,8 @@
       (notic ws (str user  " leavl the room") true))))
 
 (defn on-text
-  [^WebSocketProtocol ws ^String text-message]
+  [data ^WebSocketProtocol ws ^String text-message]
+  (println "text" data)
   (when (not= text-message "")
     (if (= text-message "ping")
       (send! ws "pong")
@@ -93,9 +89,11 @@
 
 (def ws-handler
   {:on-connect on-conn
-   :on-error (fn [^WebSocketProtocol ws e]
+   :on-error (fn [data ^WebSocketProtocol ws e]
+               (println "error" data)
                (log/error e))
    :on-close on-close
    :on-text on-text
-   :on-bytes (fn [^WebSocketProtocol ws b offset len]
+   :on-bytes (fn [data ^WebSocketProtocol ws b offset len]
+               (println "bytes" data)
                (send! ws (admin-msg "You send a invalid message.")))})

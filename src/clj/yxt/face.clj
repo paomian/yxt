@@ -104,11 +104,13 @@
    {:age age :gender gender}))
 
 (defn create-user [path id st & {:keys [age gender] :or {age -1 gender "UNKNOW"}}]
-  (insert! :yxt_user {:pic_name path
-                      :person_id id
-                      :session_token st
-                      :age age
-                      :gender gender}))
+  (-> (insert! :yxt_user {:pic_name path
+                       :person_id id
+                       :session_token st
+                       :age age
+                          :gender gender})
+      first
+      (select-keys [:id :age :gender])))
 
 (defn- placeholder
   []

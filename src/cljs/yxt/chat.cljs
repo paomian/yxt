@@ -69,7 +69,7 @@
   (reify
     om/IInitState
     (init-state [_]
-      {:ws (js/WebSocket. (str "ws://" js/location.host "/yxt/ws/"))})
+      {:ws (js/WebSocket. (str "ws://" js/location.host "/yxt/ws/") "chat")})
     om/IDidMount
     (did-mount [_]
       (let [ws (om/get-state owner :ws)]

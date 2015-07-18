@@ -9,23 +9,29 @@
 
 (defonce session-store
   (carmine-store k/redis-server {:key-prefix "yxt:biepao"
-                                 :expiration-secs 300}))
+                                 :expiration-secs 2592000}))
 
 (defn set-cache
-  ([prefix st data]
-   (wcar* (car/set (str c/session-token-prefix st) data)))
-  ([prefix st data opt]
-   (wcar* (car/set (str c/session-token-prefix st) data opt)))
-  ([prefix st data eox tm]
-   (wcar* (car/set (str c/session-token-prefix st) data eox tm))))
+  ([key data]
+   (set-cache nil key data))
+  ([prefix key data]
+   (wcar* (car/set (str prefix key) data)))
+  ([prefix key data opt]
+   (wcar* (car/set (str prefix key) data opt)))
+  ([prefix key data eox tm]
+   (wcar* (car/set (str prefix key) data eox tm))))
 
 (defn del-cache
-  [prefix st]
-  (wcar* (car/del (str prefix st))))
+  ([key]
+   (del-cache nil key))
+  ([prefix key]
+   (wcar* (car/del (str prefix key)))))
 
 (defn get-cache
-  [prefix st]
-  (wcar* (car/get (str prefix st))))
+  ([key]
+   (get-cache nil key))
+  ([prefix key]
+   (wcar* (car/get (str prefix key)))))
 
 (defn set-session-token
   "设置sessionToken缓存信息"

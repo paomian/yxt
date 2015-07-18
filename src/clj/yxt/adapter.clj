@@ -13,7 +13,8 @@
            [org.eclipse.jetty.websocket.server WebSocketHandler]
            [org.eclipse.jetty.websocket.servlet
             WebSocketServletFactory WebSocketCreator
-            ServletUpgradeRequest ServletUpgradeResponse]
+            ServletUpgradeRequest ServletUpgradeResponse
+            WebSocketServlet]
            [javax.servlet.http HttpServletRequest HttpServletResponse]
            [org.eclipse.jetty.websocket.api
             WebSocketAdapter Session
@@ -21,9 +22,12 @@
            [org.eclipse.jetty.http2.server
             HTTP2CServerConnectionFactory HTTP2ServerConnectionFactory]
            [java.nio ByteBuffer]
-           [clojure.lang IFn])
+           [clojure.lang IFn]
+           [java.net URLDecoder])
   (:require [ring.util.servlet :as servlet]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+
+            [yxt.redis :as r]))
 
 (defprotocol WebSocketProtocol
   (send! [this msg])
@@ -59,13 +63,7 @@
   Object
   (-send! [this ws]
     (-> ^WebSocketAdapter ws .getRemote
-        (.sendString ^RemoteEndpoint (str this))))
-
-  ;; "nil" could PING?
-  ;; nil
-  ;; (-send! [this ws] ()
-
-  )
+        (.sendString ^RemoteEndpoint (str this)))))
 
 (defprotocol RequestMapDecoder
   (build-request-map [r]))
@@ -110,34 +108,50 @@
 (defn- do-nothing [& args])
 
 (defn- proxy-ws-adapter
-  [{:as ws-fns
-    :keys [on-connect on-error on-text on-close on-bytes]
-    :or {on-connect do-nothing
-         on-error do-nothing
-         on-text do-nothing
-         on-close do-nothing
-         on-bytes do-nothing}}]
+  [data {:as ws-fns
+         :keys [on-connect on-error on-text on-close on-bytes]
+         :or {on-connect do-nothing
+              on-error do-nothing
+              on-text do-nothing
+              on-close do-nothing
+              on-bytes do-nothing}}]
   (proxy [WebSocketAdapter] []
     (onWebSocketConnect [^Session session]
       (let [^WebSocketAdapter this this]
         (proxy-super onWebSocketConnect session))
-      (on-connect this))
+      (on-connect data this))
     (onWebSocketError [^Throwable e]
-      (on-error this e))
+      (on-error data this e))
     (onWebSocketText [^String message]
-      (on-text this message))
+      (on-text data this message))
     (onWebSocketClose [statusCode ^String reason]
       (let [^WebSocketAdapter this this]
         (proxy-super onWebSocketClose statusCode reason))
-      (on-close this statusCode reason))
+      (on-close data this statusCode reason))
     (onWebSocketBinary [^bytes payload offset len]
-      (on-bytes this payload offset len))))
+      (on-bytes data this payload offset len))))
+
+(defn resolve-cookie
+  [cookies]
+  (reduce (fn [m ^String s]
+            (let [[k v] (string/split s #"=")]
+              (assoc m (keyword k) v)))
+          {} cookies))
 
 (defn- reify-ws-creator
   [ws-fns]
   (reify WebSocketCreator
-    (createWebSocket [this _ _]
-      (proxy-ws-adapter ws-fns))))
+    (createWebSocket [this req resp]
+      (let [p (first (.getSubProtocols req))
+            cookie (URLDecoder/decode
+                    (:yxt-session
+                     (resolve-cookie
+                      (.getHeaders req "Cookie"))))
+            user (r/get-cache cookie)]
+        (if user
+          (.setAcceptedSubProtocol resp p)
+          (.sendForbidden resp "You are not login"))
+        (proxy-ws-adapter {:user user} ws-fns)))))
 
 (defn- proxy-ws-handler
   "Returns a Jetty websocket handler"
@@ -148,7 +162,15 @@
     (configure [^WebSocketServletFactory factory]
       (-> (.getPolicy factory)
           (.setIdleTimeout ws-max-idle-time))
-      (.setCreator factory (reify-ws-creator ws-fns)))))
+      (.setCreator factory (reify-ws-creator ws-fns)))
+    (handle [^String target, ^Request request req res]
+      (let [wsf (proxy-super getWebSocketFactory)]
+        (if (.isUpgradeRequest wsf req res)
+          (if (.acceptWebSocket wsf req res)
+            (.setHandled request true)
+            (when (.isCommitted res)
+              (.setHandled request true)))
+          (proxy-super handle target request req res))))))
 
 (defn- proxy-handler
   "Returns an Jetty Handler implementation for the given Ring handler."

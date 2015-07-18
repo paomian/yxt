@@ -4,7 +4,8 @@
                                  idle-timeout connected?
                                  get-req get-resp]]
             [clojure.data.json :as json]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [clojure.string :as s])
   (:import [yxt.adapter WebSocketProtocol]))
 
 (def whole (atom {}))
@@ -32,9 +33,19 @@
                                 :time (System/currentTimeMillis)})))))
                  @whole)))))
 
+(defn resolve-cookie
+  [^String cookie]
+  (let [cookies (s/split cookie #";")]
+    (reduce (fn [m ^String s]
+              (let [[k v] (s/split s #"=")]
+                (assoc m (keyword k) v)))
+            {} cookies)))
+
 (defn on-conn
   [^WebSocketProtocol ws]
-  (let [req (get-req ws)]
+  (let [req (get-req ws)
+        cookies (get-in req [:headers :cookie])
+        cookies (resolve-cookie cookies)]
     (if (empty? @whole)
       (swap! whole assoc ws {:user "yxt1"})
       (let [c (count @whole)

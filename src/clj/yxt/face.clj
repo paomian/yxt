@@ -96,6 +96,7 @@
 
 (defn login [data & {:keys [age gender] :as msg}]
   (println ">>>>>>>>>>>>>>>>>>>>>>" msg)
+  (println data)
   (assoc-session! :user data)
   {:user data}
   (merge
@@ -104,13 +105,15 @@
    {:age age :gender gender}))
 
 (defn create-user [path id st & {:keys [age gender] :or {age -1 gender "UNKNOW"}}]
-  (-> (insert! :yxt_user {:pic_name path
-                          :person_id id
-                          :session_token st
-                          :age age
-                          :gender gender})
-      first
-      (select-keys [:id :age :gender :nickname])))
+  (let [tmp (-> (insert! :yxt_user {:pic_name path
+                                    :person_id id
+                                    :session_token st
+                                    :age age
+                                    :gender gender})
+                first
+                (select-keys [:id :age :gender :nickname]))]
+    (println tmp)
+    tmp))
 
 (defn- placeholder
   []
@@ -148,6 +151,7 @@
                                                    user (get-user person-name)
                                                    hearken (first (yh/get-hearken (:id user)))]
                                                (yl/facelog pic-name person-name  "老用户")
+                                               (println "old user login" (select-keys user [:id :age :gender :nickname]))
                                                (login (select-keys user [:id :age :gender :nickname])
                                                       :age age
                                                       :gender gender

@@ -64,11 +64,11 @@
 
 (defn on-close
   [data ^WebSocketProtocol ws status reason]
-  (let [user (:user (get @whole ws))]
+  (let [{:keys [key user]} data]
     (log/infof "%s close ws,code:%s reason:%s" user status reason)
     (when-not (empty? @whole)
-      (swap! whole dissoc ws)
-      (notic ws (str user  " leavl the room") true))))
+      (swap! whole dissoc (:id data))
+      (notic ws (str (:nickname user) " leavl the room") true))))
 
 ;(update! :yxt_user {:person_id person-id} ["session_token = ?" session-token])
 

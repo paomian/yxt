@@ -36,7 +36,7 @@
                                      :message msg
                                      :time (System/currentTimeMillis)})))
                           (catch NullPointerException _
-                            (log/error "id:%s is close but not clean" id)))))
+                            (log/errorf "id:%s is close but not clean" id)))))
                  @whole)))))
 
 (defn on-conn
@@ -69,7 +69,7 @@
   (let [{:keys [key user]} data]
     (log/infof "%s close ws,code:%s reason:%s" user status reason)
     (when-not (empty? @whole)
-      (swap! whole dissoc (:id data))
+      (swap! whole dissoc (:id user))
       (notic ws (str (:nickname user) " leavl the room") true))))
 
 ;(update! :yxt_user {:person_id person-id} ["session_token = ?" session-token])

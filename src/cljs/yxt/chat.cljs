@@ -94,7 +94,7 @@
                                 #(conj % {:user "Admin"
                                           :message (str
                                                     "You are not login please go to "
-                                                    js/lcation.host
+                                                    js/location.host
                                                     " login")
                                           :time 1888888}))))
         (set! (.-onclose ws) (fn [evt]

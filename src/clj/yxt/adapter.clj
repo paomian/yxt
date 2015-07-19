@@ -143,10 +143,12 @@
   (reify WebSocketCreator
     (createWebSocket [this req resp]
       (let [p (first (.getSubProtocols req))
-            cookie (URLDecoder/decode
-                    (:yxt-session
-                     (resolve-cookie
-                      (.getHeaders req "Cookie"))))
+            c (:yxt-session
+               (resolve-cookie
+                (.getHeaders req "Cookie")))
+            cookie (when c
+                     (URLDecoder/decode
+                      c))
             user (-> (r/get-cache cookie)
                      :yxt :user)]
         (if (not-empty user)

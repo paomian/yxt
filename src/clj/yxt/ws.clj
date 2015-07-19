@@ -20,21 +20,23 @@
           (log/info n )))
 
 (defn notic
-  ([ows msg]
-   (notic ows msg false))
-  ([ows msg admin?]
+  ([oname msg]
+   (notic oname msg false))
+  ([oname msg admin?]
    (when-not (empty? @whole)
      (dorun (map (fn [[id {:keys [nickname ws]}]]
                    (when ws
-                     (send! ws
-                            (json/write-str
-                             (if admin?
-                               {:user "Admin"
-                                :message msg
-                                :time (System/currentTimeMillis)}
-                               {:user nickname
-                                :message msg
-                                :time (System/currentTimeMillis)})))))
+                     (try (send! ws
+                                 (json/write-str
+                                  (if admin?
+                                    {:user "Admin"
+                                     :message msg
+                                     :time (System/currentTimeMillis)}
+                                    {:user nickname
+                                     :message msg
+                                     :time (System/currentTimeMillis)})))
+                          (catch NullPointerException _
+                            (log/error "id:%s is close but not clean" id)))))
                  @whole)))))
 
 (defn on-conn
@@ -101,8 +103,8 @@
                   (send! ws (admin-msg (format "Change name to %s success" n))))))
             (identity message)
             (do
-              (log/infof "%s send message: %s" (get @whole ws) text-message)
-              (notic (:id user) message))
+              (log/infof "%s send message: %s" (:nickname user) text-message)
+              (notic (:nickname user) message))
             :default
             (send! ws (admin-msg "You send a invalid message."))))))))
 

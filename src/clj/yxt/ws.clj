@@ -32,7 +32,7 @@
                                     {:user "Admin"
                                      :message msg
                                      :time (System/currentTimeMillis)}
-                                    {:user nickname
+                                    {:user oname
                                      :message msg
                                      :time (System/currentTimeMillis)})))
                           (catch NullPointerException _

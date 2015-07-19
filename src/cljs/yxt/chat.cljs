@@ -87,7 +87,16 @@
                                          (js/JSON.parse data)
                                          :keywordize-keys true)))))))
         (set! (.-onerror ws) (fn [evt]
-                               (println "error")))
+                               (println "error")
+                               (om/transact!
+                                state
+                                :history
+                                #(conj % {:user "Admin"
+                                          :message (str
+                                                    "You are not login please go to "
+                                                    js/lcation.host
+                                                    " login")
+                                          :time 1888888}))))
         (set! (.-onclose ws) (fn [evt]
                                (println (str "Websocket close code: "
                                              (.-code evt) " reason: "

@@ -57,8 +57,10 @@ function fsubmit(anti) {
                     }
                 }
                 if (data['hello']) {
+                    html = html + '<a href="/chat.html" class="btn btn-success" role="button">去聊天</a>'
                     html = html + '<a href="/hello.html" class="btn btn-success" role="button">在说句话吧</a>';
                 } else {
+                    html = html + '<a href="/chat.html" class="btn btn-success" role="button">去聊天</a>'
                     html = html + '<a href="/hello.html" class="btn btn-success" role="button">你好像还沉默着</a>';
                 }
                 html = html + '</div>';

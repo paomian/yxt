@@ -48,28 +48,24 @@
   [handler & opts]
   (let [{:keys [hello]} opts]
     (fn [request]
-      (if-let [session-token (or
-                              (get (-> request :headers) "x-yxt-session-token")
-                              (get (:session request) :session-token))]
+      (if-let [session-token (get (-> request :headers) "x-yxt-session-token")]
         (if-let [data (get-user session-token)]
           (handler (assoc request :user data))
-          (if (= (:uri request) "/byebye")
-            (handler request)
-            {:status 401
-             :headers {"Content-Type" "application/json;charset=UTF-8"}
-             :body "{\"error\":\"Malformed SessionToken\"}"}))
+          {:status 401
+           :headers {"Content-Type" "application/json;charset=UTF-8"}
+           :body "{\"error\":\"Malformed SessionToken\"}"})
         (handler request)))))
 
 (defn wrap-yxt-sc
   "对 *yxt-cookies* 和 *yxt-session* 进行操作，来修改 :session 和 :cookies字段"
   [handler]
   (fn [request]
-    (binding [*yxt-session* (atom (get request :session {}))
+    (binding [*yxt-session* (atom (get-in request [:session :yxt] {}))
               *yxt-cookies* (atom {})]
       (when-let [resp (handler request)]
         (-> resp
             (assoc :cookies (merge (:cookies resp) @*yxt-cookies*))
-            (assoc :session @*yxt-session*))))))
+            (assoc-in [:session :yxt] @*yxt-session*))))))
 
 (defn wrap-test
   [handler]

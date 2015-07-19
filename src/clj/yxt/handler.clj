@@ -35,7 +35,7 @@
 (defn wrap-req
   [handler]
   (fn [req]
-    (print ">>>>>>>>>>>>>>" (:session req))
+    (clojure.pprint/pprint req)
     (handler req)))
 
 (def site-defaults

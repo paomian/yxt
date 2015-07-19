@@ -147,11 +147,14 @@
                     (:yxt-session
                      (resolve-cookie
                       (.getHeaders req "Cookie"))))
-            user (r/get-cache cookie)]
-        (if user
-          (.setAcceptedSubProtocol resp p)
-          (.sendForbidden resp "You are not login"))
-        (proxy-ws-adapter {:user user} ws-fns)))))
+            user (-> (r/get-cache cookie)
+                     :yxt :user)]
+        (if (not-empty user)
+          (do
+            (.setAcceptedSubProtocol resp p)
+            (proxy-ws-adapter {:key cookie
+                               :user user}  ws-fns))
+          (.sendForbidden resp "You are not login"))))))
 
 (defn- proxy-ws-handler
   "Returns a Jetty websocket handler"

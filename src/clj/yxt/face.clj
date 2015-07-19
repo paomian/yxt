@@ -94,10 +94,10 @@
     {:body body}))
 
 
-(defn login [st & {:keys [age gender] :as msg}]
+(defn login [data & {:keys [age gender] :as msg}]
   (println ">>>>>>>>>>>>>>>>>>>>>>" msg)
-  (assoc-session! :session-token st)
-  {:sessonToken st}
+  (assoc-session! :user data)
+  {:user data}
   (merge
    (when (:hello msg)
      {:hello (:hello msg)})
@@ -105,12 +105,12 @@
 
 (defn create-user [path id st & {:keys [age gender] :or {age -1 gender "UNKNOW"}}]
   (-> (insert! :yxt_user {:pic_name path
-                       :person_id id
-                       :session_token st
-                       :age age
+                          :person_id id
+                          :session_token st
+                          :age age
                           :gender gender})
       first
-      (select-keys [:id :age :gender])))
+      (select-keys [:id :age :gender :nickname])))
 
 (defn- placeholder
   []
@@ -148,13 +148,13 @@
                                                    user (get-user person-name)
                                                    hearken (first (yh/get-hearken (:id user)))]
                                                (yl/facelog pic-name person-name  "老用户")
-                                               (login person-name
+                                               (login (select-keys user [:id :age :gender :nickname])
                                                       :age age
                                                       :gender gender
                                                       :msg "老用户登录"
                                                       :hello hearken))
-                                             (let [session-token (rand-string 64)]
-                                               (create-user pic-name (placeholder) session-token :age age :gender gender)
+                                             (let [session-token (rand-string 64)
+                                                   user (create-user pic-name (placeholder) session-token :age age :gender gender)]
                                                (future
                                                  (let [start (System/currentTimeMillis)
                                                        person-id (:person_id (create-person session-token face-id gender))]
@@ -162,12 +162,12 @@
                                                    (update-person person-id session-token)  ;; person-name 用来存储 sessionToken
                                                    (log/infof "Create person %s cast time %s ms" person-id (- (System/currentTimeMillis) start))))
                                                (yl/facelog pic-name session-token "新用户" )
-                                               (login session-token
+                                               (login user
                                                       :age age
                                                       :gender gender
                                                       :msg "创建新用户"))))
-                                         (let [session-token (rand-string 64)]
-                                           (create-user pic-name (placeholder) session-token :age age :gender gender)
+                                         (let [session-token (rand-string 64)
+                                               user (create-user pic-name (placeholder) session-token :age age :gender gender)]
                                            (future (let [start (System/currentTimeMillis)
                                                          group-name (:group_name (create-group gender))
                                                          person-id (:person_id (create-person session-token face-id group-name))]
@@ -175,10 +175,10 @@
                                                      (update-person person-id session-token :age age :gender gender)
                                                      (log/infof "Create %s group and person %s cast time %s ms" group-name person-id (- (System/currentTimeMillis) start))))
                                            (yl/facelog pic-name session-token "新分组新用户")
-                                           (login  session-token
-                                                   :age age
-                                                   :gender gender
-                                                   :msg "创建新分组新用户"))))
+                                           (login user
+                                                  :age age
+                                                  :gender gender
+                                                  :msg "创建新分组新用户"))))
           :default "if you get this page,you are beautiful.")))
 
 (defhandler yxt [file]

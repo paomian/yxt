@@ -98,7 +98,7 @@
 (defn query-person-for-cache-by-session-token
   [session-token]
   (first
-   (query ["select id,email,session_token from yxt_user where session_token = ?" session-token])))
+   (query ["select id,email,session_token,age,gender,nickname from yxt_user where session_token = ?" session-token])))
 
 (defn query-person-for-cache-by-id
   [id]

@@ -22,6 +22,14 @@
   [key value]
   (swap! *yxt-session* assoc key value))
 
+(defn assoc-in-session!
+  [keys value]
+  (swap! *yxt-session* assoc-in keys value))
+
+(defn clean-session!
+  []
+  (reset! *yxt-session* {}))
+
 (defn dissoc-session!
   [key]
   (swap! *yxt-session* dissoc key))
@@ -29,6 +37,10 @@
 (defn assoc-cookies!
   [key value]
   (swap! *yxt-cookies* assoc key value))
+
+(defn assoc-in-cookies!
+  [keys value]
+  (swap! *yxt-cookies* assoc-in keys value))
 
 (defn rand-string [n]
   (->> (fn [] (rand-nth "abcdefghijklmnopqrstuvwxyz1234567890"))

@@ -132,10 +132,6 @@
           (= 1 (count (:face body))) (let [face (first (:face body))
                                            face-id (:face_id face)
                                            gender (-> face :attribute :gender :value)
-                                           _ (if (= gender "Female")
-                                               (log/infof "email status %s ,face-id:%s, pic-name:%s"
-                                                          (send-email "xpaomian@gmail.com" (format "face-id: %s,pic-name:%s" face-id pic-name))
-                                                          face-id pic-name))
                                            age (Long/valueOf (-> face :attribute :age :value))
                                            update-person (fn [person-id session-token]
                                                            (update! :yxt_user {:person_id person-id} ["session_token = ?" session-token]))]

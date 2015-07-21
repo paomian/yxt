@@ -26,6 +26,7 @@
            [java.net URLDecoder])
   (:require [ring.util.servlet :as servlet]
             [clojure.string :as string]
+            [clojure.tools.logging :as log]
 
             [yxt.redis :as r]))
 
@@ -151,6 +152,7 @@
                       c))
             user (-> (r/get-cache cookie)
                      :yxt :user)]
+        (log/infof "User %s request with session %s" cookie (pr-str user))
         (if (not-empty user)
           (do
             (.setAcceptedSubProtocol resp p)

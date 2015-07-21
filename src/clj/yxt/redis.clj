@@ -9,7 +9,7 @@
 
 (defonce session-store
   (carmine-store k/redis-server {:key-prefix "yxt:biepao"
-                                 :expiration-secs 2592000}))
+                                 :expiration-secs (* 60 60 24 30)}))
 
 (defn set-cache
   ([key data]

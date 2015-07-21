@@ -1,5 +1,6 @@
 (ns yxt.wrap
   (:require [clojure.data.json :as json]
+            [clojure.tools.logging :as log]
 
             [yxt.redis :as r]
             [yxt.util :refer [*yxt-session* *yxt-cookies*]]
@@ -63,6 +64,7 @@
     (binding [*yxt-session* (atom (get-in request [:session :yxt] {}))
               *yxt-cookies* (atom {})]
       (when-let [resp (handler request)]
+        (log/info "resp session %s" (pr-str (:session resp)))
         (-> resp
             (assoc :cookies (merge (:cookies resp) @*yxt-cookies*))
             (assoc-in [:session :yxt] @*yxt-session*))))))

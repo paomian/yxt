@@ -78,7 +78,7 @@
   [data ^WebSocketProtocol ws ^String text-message]
   (when (not= text-message "")
     (let [{:keys [key user]} data
-          {:keys [id nickname]} user]
+          {:keys [id]} user]
       (cond
         (= text-message "ping") (send! ws "pong")
         :default
@@ -102,9 +102,9 @@
                   (swap! whole assoc id {:ws ws :nickname n})
                   (send! ws (admin-msg (format "Change name to %s success" n))))))
             (identity message)
-            (do
-              (log/infof "%s send message: %s" (:nickname user) text-message)
-              (notic (:nickname user) message))
+            (let [nickname (get-in @whole [id :nickname] "傻逼!")]
+              (log/infof "%s send message: %s" nickname text-message)
+              (notic nickname message))
             :default
             (send! ws (admin-msg "You send a invalid message."))))))))
 

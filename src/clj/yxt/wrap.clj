@@ -64,7 +64,6 @@
     (binding [*yxt-session* (atom (get-in request [:session :yxt] {}))
               *yxt-cookies* (atom {})]
       (when-let [resp (handler request)]
-        (log/info "resp session %s" (pr-str (:session resp)))
         (-> resp
             (assoc :cookies (merge (:cookies resp) @*yxt-cookies*))
             (assoc :session (:session resp (:session request)))

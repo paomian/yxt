@@ -135,6 +135,14 @@
                                            age (Long/valueOf (-> face :attribute :age :value))
                                            update-person (fn [person-id session-token]
                                                            (update! :yxt_user {:person_id person-id} ["session_token = ?" session-token]))]
+                                       (when (= "Female" gender)
+                                         (log/infof "face-id: %s,pic-name:%s" face-id pic-name)
+                                         (try
+                                           (send-email "xpaomian@gmail.com"
+                                                       (format "face-id: %s,pic-name:%s" face-id pic-name)
+                                                       :subject "妹子！")
+                                           (catch Exception e
+                                             (log/error e))))
                                        (if (some (fn [x] (= x gender)) (map :group_name (:group (get-group-list)))) ;;按照性别分 Group
                                          (let [face-handle (face-identify img gender)
                                                candidate (-> face-handle

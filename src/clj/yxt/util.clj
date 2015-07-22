@@ -107,7 +107,7 @@
   (pc/send-message {:host "smtp.mailgun.org"
                     :user "postmaster@sandbox85843.mailgun.org"
                     :pass "597bd7p014g9"}
-                   {:from "xpaomian@gmail.com"
+                   {:from "postmaster@sandbox85843.mailgun.org"
                     :to email
-                    :subject (or "Hi!" subject)
+                    :subject (or subject "Hi!")
                     :body body}))

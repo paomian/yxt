@@ -67,6 +67,7 @@
         (log/info "resp session %s" (pr-str (:session resp)))
         (-> resp
             (assoc :cookies (merge (:cookies resp) @*yxt-cookies*))
+            (assoc :session (:session resp (:session request)))
             (assoc-in [:session :yxt] @*yxt-session*))))))
 
 (defn wrap-test

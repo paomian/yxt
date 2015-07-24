@@ -73,9 +73,14 @@
   (reify
     om/IInitState
     (init-state [_]
-      {:ws (js/WebSocket. (str "ws://" js/location.host "/yxt/ws/") "chat")})
+      {:ws (js/WebSocket. (str "ws://" js/location.host "/yxt/ws/") "chat")
+       :is-active true})
     om/IDidMount
     (did-mount [_]
+      (set! (.-onfocus js/window) (fn []
+                                    (om/set-state! owner :is-active true)))
+      (set! (.-onblur js/window) (fn []
+                                    (om/set-state! owner :is-active false)))
       (let [ws (om/get-state owner :ws)]
         (set! (.-onopen ws) (fn [evt]
                               (println "connect success")))
@@ -86,15 +91,16 @@
                                      (let [d (js->clj
                                               (js/JSON.parse data)
                                               :keywordize-keys true)]
-                                       (if js/Notification
-                                         (if (= (.-permission js/Notification) "granted")
-                                           (js/Notification.
-                                            (:user d)
-                                            (clj->js
-                                             {:icon (str js/location.origin "/favicon.ico")
-                                              :body (:message d)}))
-                                           (.requestPermission js/Notification))
-                                         (js/alert "Your don't suppoer desktop notification"))
+                                       (when (not (om/get-state owner :is-active))
+                                         (if js/Notification
+                                           (if (= (.-permission js/Notification) "granted")
+                                             (js/Notification.
+                                              (:user d)
+                                              (clj->js
+                                               {:icon (str js/location.origin "/favicon.ico")
+                                                :body (:message d)}))
+                                             (.requestPermission js/Notification))
+                                           (js/alert "Your don't suppoer desktop notification")))
                                        (om/transact!
                                         state :history
                                         #(conj

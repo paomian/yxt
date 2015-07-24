@@ -23,6 +23,7 @@
                  [lib-noir "0.9.9"]
                  [com.taoensso/carmine "2.11.1"]
                  [org.clojure/tools.nrepl "0.2.10"]
+                 [org.nlpcn/nlp-lang "0.2"]
                  [com.draines/postal "1.11.3"]
                  [org.clojure/clojurescript "0.0-3308"]
                  [org.omcljs/om "0.8.8"]
@@ -42,6 +43,7 @@
   :plugins [[lein-ring "0.9.6"]
             [lein-cljsbuild "1.0.6"]]
   :main yxt.handler
+  :repositories [["nlpcn" "http://maven.nlpcn.org/"]]
   :cljsbuild {:builds
               {:dev
                {;; clojurescript source code path

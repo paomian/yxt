@@ -45,7 +45,7 @@
                :multipart  true
                :nested     true
                :keywordize true}
-   :cookies   true
+   :cookies   {:max-age (* 3600 24 30)}
    :session   {:flash true
                :store yr/session-store
                :cookie-name "yxt-session"

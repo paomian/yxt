@@ -1,13 +1,17 @@
 (ns yxt.chat
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om]
             [om.dom :as dom]
-            [om-tools.dom :as odom]))
+            [om-tools.dom :as odom]
+            [cljs.core.async :refer [<! chan put! timeout]]))
 
 (enable-console-print!)
 
 (def app (js/document.getElementById "yxt-main"))
 
 (def chathistory (atom {:history []}))
+
+(def current-user (atom {}))
 
 #_(add-watch chathistory :chat
            (fn [_ _ _ n]

@@ -3,7 +3,7 @@
                                  remote-addr idle-timeout!
                                  idle-timeout connected?
                                  get-req get-resp]]
-            [yxt.util :refer [defhandler deflogin]]
+            [yxt.util :refer [defhandler deflogin] :as yu]
             [yxt.redis :refer [set-cache get-cache]]
             [yxt.db :refer [update!]]
 

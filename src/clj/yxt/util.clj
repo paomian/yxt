@@ -7,7 +7,8 @@
             [yxt.db :as d]
             [yxt.redis :as r]
             [yxt.key :as yk]
-            [yxt.redis :as rx]))
+            [yxt.redis :as rx])
+  (:import [org.nlpcn.commons.lang.pinyin Pinyin]))
 
 (declare ^:dynamic *yxt-session*)
 (declare ^:dynamic *yxt-cookies*)
@@ -111,3 +112,13 @@
                     :to email
                     :subject (or subject "Hi!")
                     :body body}))
+
+(defn resolve-py
+  [^String s]
+  (let [py (Pinyin/pinyinWithoutTone s)]
+    {:py (apply
+          str
+          (map
+           (comp str first)
+           (map #(str %) py)))
+     :pinyin (apply str py)}))

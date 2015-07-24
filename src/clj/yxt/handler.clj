@@ -49,7 +49,8 @@
    :session   {:flash true
                :store yr/session-store
                :cookie-name "yxt-session"
-               :cookie-attrs {:http-only true}}
+               :cookie-attrs {:http-only true
+                              :max-age (* 3600 24 30)}}
    :security  {:anti-forgery   true
                :xss-protection {:enable? true, :mode :block}
                :frame-options  :sameorigin

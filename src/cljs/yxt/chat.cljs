@@ -28,7 +28,7 @@
                "alert alert-success")}
      (odom/h4
       {:class "alert-heading"}
-      (str user " 说："))
+      (str user "说："))
      (odom/p
       {:class "panel-body"}
       msg))))
@@ -83,13 +83,23 @@
                                  (let [data (.-data evt)]
                                    (if (= data "pong")
                                      (println "heard go on")
-                                     (om/transact!
-                                      state :history
-                                      #(conj
-                                        %
-                                        (js->clj
-                                         (js/JSON.parse data)
-                                         :keywordize-keys true)))))))
+                                     (let [d (js->clj
+                                              (js/JSON.parse data)
+                                              :keywordize-keys true)]
+                                       (if js/Notification
+                                         (if (= (.-permission js/Notification) "granted")
+                                           (js/Notification.
+                                            (:user d)
+                                            (clj->js
+                                             {:icon (str js/location.origin "/favicon.ico")
+                                              :body (:message d)}))
+                                           (.requestPermission js/Notification))
+                                         (js/alert "Your don't suppoer desktop notification"))
+                                       (om/transact!
+                                        state :history
+                                        #(conj
+                                          %
+                                          d)))))))
         (set! (.-onerror ws) (fn [evt]
                                (println "error")
                                (om/transact!
@@ -111,10 +121,11 @@
                                 #(conj % {:user "Admin"
                                           :message "You are leave this room"
                                           :time 1888888}))))
-        (js/setInterval (fn []
-                          (when (= (.-readyState ws) 1)
-                              (.send ws "ping")))
-                        10000)))
+        (js/setInterval
+         (fn []
+           (when (= (.-readyState ws) 1)
+             (.send ws "ping")))
+         10000)))
     om/IRenderState
     (render-state [_ local]
       (odom/section

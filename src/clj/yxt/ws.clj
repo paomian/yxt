@@ -38,10 +38,9 @@
      (dorun (map (fn [[id {:keys [nickname ws]}]]
                    (when ws
                      (try (send! ws
-                                 (json/write-str
-                                  (if admin?
-                                    (admin-msg msg)
-                                    (user-msg oname msg))))
+                                 (if admin?
+                                   (admin-msg msg)
+                                   (user-msg oname msg)))
                           (catch NullPointerException _
                             (log/errorf "id:%s is close but not clean" id)))))
                  @whole)))))
@@ -55,12 +54,12 @@
     (let [nickname (or nickname "Lazy")]
       (swap! whole assoc id {:ws ws :nickname nickname})
       (notic nickname (str nickname " join the room") true)
-      (send! ws (json/write-str (admin-msg
-                                 (str
-                                  "Current room users : "
-                                  (clojure.string/join
-                                   ", "
-                                   (map (fn [[_ m]] (:nickname m)) @whole)))))))))
+      (send! ws (admin-msg
+                 (str
+                  "Current room users : "
+                  (clojure.string/join
+                   ", "
+                   (map (fn [[_ m]] (:nickname m)) @whole))))))))
 
 (defn on-close
   [data ^WebSocketProtocol ws status reason]

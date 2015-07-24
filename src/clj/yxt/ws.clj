@@ -67,8 +67,10 @@
   (let [{:keys [key user]} data]
     (log/infof "%s close ws,code:%s reason:%s" user status reason)
     (when-not (empty? @whole)
-      (swap! whole dissoc (:id user))
-      (notic ws (str (:nickname user) " leavl the room") true))))
+      (let [nickname (:nickname
+                      (get @whole (:id user)))]
+        (swap! whole dissoc (:id user))
+        (notic ws (str nickname " leavl the room") true)))))
 
 ;(update! :yxt_user {:person_id person-id} ["session_token = ?" session-token])
 
@@ -103,7 +105,7 @@
                                 (get @whole ws) text-message)))]
           (cond
             (.startsWith message "/name")
-            (send! ws (admin-msg (change-name user message)))
+            (send! ws (admin-msg (change-name user message ws)))
 
             (identity message)
             (let [nickname (get-in @whole [(:id user) :nickname] "傻逼!")]

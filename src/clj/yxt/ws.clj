@@ -19,6 +19,17 @@
  :whole (fn [_ _ _ n]
           (log/info n )))
 
+(defn user-msg
+  [user msg]
+  (json/write-str
+   {:message msg
+    :user user
+    :time (System/currentTimeMillis)}))
+
+(defn admin-msg
+  [msg]
+  (user-msg "Admin" msg))
+
 (defn notic
   ([oname msg]
    (notic oname msg false))
@@ -29,12 +40,8 @@
                      (try (send! ws
                                  (json/write-str
                                   (if admin?
-                                    {:user "Admin"
-                                     :message msg
-                                     :time (System/currentTimeMillis)}
-                                    {:user oname
-                                     :message msg
-                                     :time (System/currentTimeMillis)})))
+                                    (admin-msg msg)
+                                    (user-msg oname msg))))
                           (catch NullPointerException _
                             (log/errorf "id:%s is close but not clean" id)))))
                  @whole)))))
@@ -45,24 +52,15 @@
         cookies (get-in req [:headers :cookie])
         {:keys [_ user]} data
         {:keys [id nickname]} user]
-    (if (nil? nickname)
-      (swap! whole assoc id {:ws ws :nickname "hehe"})
-      (swap! whole assoc id {:ws ws :nickname nickname}))
-    (notic ws (str (or nickname "hehe") " join the room") true)
-    (send! ws (json/write-str {:user "Admin"
-                               :message (str
-                                         "Current room users : "
-                                         (clojure.string/join
-                                          ", "
-                                          (map (fn [[_ m]] (:nickname m)) @whole)))
-                               :time (System/currentTimeMillis)}))))
-
-(defn admin-msg
-  [message]
-  (json/write-str
-   {:message message
-    :user "Admin"
-    :time (System/currentTimeMillis)}))
+    (let [nickname (or nickname "Lazy")]
+      (swap! whole assoc id {:ws ws :nickname nickname})
+      (notic nickname (str nickname " join the room") true)
+      (send! ws (json/write-str (admin-msg
+                                 (str
+                                  "Current room users : "
+                                  (clojure.string/join
+                                   ", "
+                                   (map (fn [[_ m]] (:nickname m)) @whole)))))))))
 
 (defn on-close
   [data ^WebSocketProtocol ws status reason]
@@ -74,11 +72,26 @@
 
 ;(update! :yxt_user {:person_id person-id} ["session_token = ?" session-token])
 
+(defn change-name
+  [user ^String message
+   ^WebSocketProtocol ws]
+  (let [n (.substring message 6)
+        tmp (get-cache "yxt:name:" (:id user))
+        {:keys [id]} user]
+    (if tmp
+      "You change name too fast"
+      (let [old (get-cache key)]
+        (log/infof "%s change name to %s" id n)
+        (update! :yxt_user {:nickname n} ["id = ?" id])
+        (set-cache "yxt:name:" id "1" "EX" 84600)
+        (set-cache key (assoc-in old [:yxt :user :nickname] n))
+        (swap! whole assoc id {:ws ws :nickname n})
+        (format "Change name to %s success" n)))))
+
 (defn on-text
   [data ^WebSocketProtocol ws ^String text-message]
   (when (not= text-message "")
-    (let [{:keys [key user]} data
-          {:keys [id]} user]
+    (let [{:keys [key user]} data]
       (cond
         (= text-message "ping") (send! ws "pong")
         :default
@@ -90,19 +103,10 @@
                                 (get @whole ws) text-message)))]
           (cond
             (.startsWith message "/name")
-            (let [[_ n] (s/split message #"\s+")
-                  tmp (get-cache "yxt:name:" (:id user))]
-              (if tmp
-                (send! ws (admin-msg "You change name too fast"))
-                (let [old (get-cache key)]
-                  (log/infof "%s change name to %s" (:id user) n)
-                  (update! :yxt_user {:nickname n} ["id = ?" id])
-                  (set-cache "yxt:name:" (:id user) "1" "EX" 84600)
-                  (set-cache key (assoc-in old [:yxt :user :nickname] n))
-                  (swap! whole assoc id {:ws ws :nickname n})
-                  (send! ws (admin-msg (format "Change name to %s success" n))))))
+            (send! ws (admin-msg (change-name user message)))
+
             (identity message)
-            (let [nickname (get-in @whole [id :nickname] "傻逼!")]
+            (let [nickname (get-in @whole [(:id user) :nickname] "傻逼!")]
               (log/infof "%s send message: %s" nickname text-message)
               (notic nickname message))
             :default

@@ -50,9 +50,11 @@
                 :source-paths ["src/cljs"]
                 ;; Google Closure Compiler options
                 :compiler {;; the name of emitted JS script file
-                           :output-to "resources/public/js/yxt_dbg.js"
+                           :output-dir "resources/public/js/out"
+                           :output-to  "resources/public/js/yxt_dbg.js"
+                           :source-map "resources/public/js/yxt_dbg.js.map"
                            ;; minimum optimization
-                           :optimizations :whitespace
+                           :optimizations :advanced
                            ;; prettyfying emitted JS
                            :pretty-print true}}
                :prod

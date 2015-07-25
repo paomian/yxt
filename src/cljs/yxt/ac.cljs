@@ -12,8 +12,7 @@
 (defn- reset-autocomplete-state!
   [owner]
   (do
-    (om/set-state! owner :highlighted-index 0)
-    (om/set-state! owner :value "")))
+    (om/set-state! owner :highlighted-index 0)))
 
 (defn- handle-select
   [owner result-ch idx]
@@ -24,7 +23,7 @@
       (reset-autocomplete-state! owner))))
 
 (defn autocomplete
-  [cursor owner {:keys [result-ch  suggestions-fn  results-view   results-view-opts
+  [data owner {:keys [result-ch  suggestions-fn  results-view   results-view-opts
                         input-view input-view-opts container-view container-view-opts]}]
   (reify
     om/IInitState
@@ -69,16 +68,17 @@
                                        :loading? true))))
           (suggestions-fn
            new-value
+           data
            (om/get-state owner :suggestions-ch)
            (om/get-state owner :cancel-suggestions-ch)))))
 
     om/IRenderState
     (render-state [_ {:keys [focus-ch value-ch highlight-ch select-ch value
                              highlighted-index loading? focused? suggestions]}]
-      (om/build container-view cursor
+      (om/build container-view data
                 {:state
                  {:input-component
-                  (om/build input-view cursor
+                  (om/build input-view data
                             {:init-state {:focus-ch focus-ch
                                           :value-ch value-ch
                                           :highlight-ch highlight-ch
@@ -87,7 +87,7 @@
                                      :highlighted-index highlighted-index}
                              :opts input-view-opts})
                   :results-component
-                  (om/build results-view cursor
+                  (om/build results-view data
                             {:init-state {:highlight-ch highlight-ch
                                           :select-ch select-ch}
                              :state {:value value
